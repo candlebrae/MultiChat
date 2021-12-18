@@ -10,4 +10,4 @@ localChat was intended for folks that need to talk to the voices within them for
 ## Dependencies and Usage
 All you need to have installed is Python 3. 
 
-To run localChat, navigate to the folder you saved it to and open a console there. Type ``python localChat.py`` and you're good to go. If you'd like, you could make a shortcut to the file so that you don't need to do this manually every time. If you're on Linux, you could chuck it in .local/bin to make it easier for you to execute.
+To run localChat, navigate to the folder you saved it to and open a console there. Type ``python localChat.py`` and you're good to go. If you'd like, you could make a shortcut to the file so that you don't need to do this manually every time. If you're on Linux, you could chuck it in .local/bin to make it easier for you to execute (just be aware that chat log files are stored in a directory called "chatlogs" placed in the same directory as the program).
