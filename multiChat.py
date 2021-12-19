@@ -2,13 +2,21 @@
 from datetime import date
 from datetime import datetime
 import os
+import sys
+import platform
 
 # Set up main function
 def main():
-    # Set up a notes directory
+    # Set up a log directory
+    if platform.system() == "Windows":
+        env_home = os.getenv('APPDATA')
+    else:
+        env_home = os.environ['HOME']
+    log_dir = env_home + "/.multichat"
+
     try:
-        if os.path.isdir("./chatlogs") == False: os.mkdir("chatlogs")
-        os.chdir("chatlogs")
+        if os.path.isdir(log_dir) == False: os.mkdir(log_dir)
+        os.chdir(log_dir)
     except Exception as error:
         print("Error creating or accessing chatlogs folder.")
         print("Please report this error to the creator.")
@@ -16,7 +24,7 @@ def main():
 
     # Get user names and the file to log to.
     user_list, user_count = get_users()
-    log_file = get_log_file()
+    log_file = get_log_file(log_dir)
     # Chat and log to file.
     chat(user_list, log_file, user_count)
     # Close file and finish up.
@@ -46,7 +54,7 @@ def get_users():
         # Allow for insta-quitting.
         if user_name == "q":
             clear()
-            exit()
+            sys.exit(0)
         else:
             # Add user.
             user_list.update({user_number: user_name})
@@ -64,7 +72,7 @@ def get_users():
                 if continue_check.lower() == "n":
                     return user_list, user_number
             
-def get_log_file():
+def get_log_file(log_dir):
     # Get or create log file.
     print()
     print("Enter a name for this chat, or hit enter to")
@@ -74,18 +82,20 @@ def get_log_file():
         log_file_name = "chat"
     # Check for quitting.
     if log_file_name == "q":
-        exit()
+        sys.exit(0)
     try:
+        log_file_name = log_dir + "/" + log_file_name + ".txt"
+        print(log_file_name)
         # Make sure the file exists so r+ mode won't throw a fit
         # Yes, this is clumsy and a horrible way to do this
         # But it's 5 pm and I've been at this all day, and it's
         # not really intended for capitalism or anything, so.
         # As long as it works!
-        log_file = open(log_file_name + ".txt", "a")
+        log_file = open(log_file_name, "a")
         log_file.close()
         # Now that we are 100% certain the file exists:
         # Attempt to open the log file as read-append.
-        log_file = open(log_file_name + ".txt", 'r+')
+        log_file = open(log_file_name, 'r+')
         # If something goes wrong, retry the loop.
     except Exception as error:
         print("Error:", error)
