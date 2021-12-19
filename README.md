@@ -13,7 +13,7 @@ MultiChat was intended for folks that need to talk to the voices within them for
 There are a handful of commands you can use in MultiChat, ranging from adding more users to the session to hiding messages from the log file. All of these commands can be viewed by sending ``/commands`` in the chat. You can also view a help message by sending ``/help`` at any time.
 
 ## Dependencies and Usage
-All you need to have installed is Python 3. 
+All you need to have installed is Python 3. [You can get the latest version of Python here.](https://www.python.org/downloads/)
 
 To run MultiChat, navigate to the folder you saved it to and open a console there. Type ``python multiChat.py`` and you're good to go. If you'd like, you could make a shortcut to the file so that you don't need to do this manually every time. If you're on Linux, you could chuck it in .local/bin to make it easier for you to execute (just be aware that chat log files are stored in a directory called "chatlogs" placed in the same directory as the program).
 
