@@ -2,7 +2,9 @@
 A simple, personal chat program that runs on a single computer. No Internet, just you.
 
 ## Simple and Local
-MultiChat was created with ease of use in mind. You pick the names of the users, and the name of the chat log. After that, it's a bare-bones chat application that's simple to use. Type a number who's talking, and /quit to quit. Hit enter to send messages. There's only one computer using localChat: yours. It will never connect to the Internet, and you can't chat with someone on the other side of the world with it. This is your chat program, and yours alone.
+MultiChat was created with ease of use in mind. You add a few users of your choice to the session, and specify the name of the chat log. After that, it's a  chat application that's simple to use. Type a number to change who's talking, and ``/quit`` to quit. Hit enter to send messages. 
+
+There's only one computer using MultiChat: yours. It will never connect to the Internet, and you can't chat with someone on the other side of the world with it. This is your chat program, and yours alone.
 
 ## Self-talk
 MultiChat was intended for folks that need to talk to the voices within them for one reason or another. Maybe you think better when you talk to yourself. Maybe you're a system and need to have a conversation externally. Maybe it's a handy tool for simulating social interactions ahead of time. Maybe you need a tool for roleplay, or want to write as though your characters were in a chat room. Maybe you just want to mess around. Whatever the reason, MultiChat was made to let you have that conversation.
