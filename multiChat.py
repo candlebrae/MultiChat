@@ -86,6 +86,8 @@ def get_users():
                 continue_check = input("Enter y or n: ")
                 if continue_check.lower() == "n":
                     return user_list, user_number
+                if continue_check.lower() == "y":
+                    user_number += 1
             
 def get_log_file(log_dir):
     # Get or create log file.
@@ -152,6 +154,7 @@ def chat(user_list, log_dir, log_file, user_count):
         print("Type " + str(counter) + " to send messages as " + user_list[counter] + ",")
         counter += 1
     print("Or type /quit to quit (case sensitive).")
+    print()
     print("Type /help to view a help message,")
     print("and /users to see a list of all users.")
     print()
@@ -209,7 +212,8 @@ def chat(user_list, log_dir, log_file, user_count):
         elif chat_message == "/add":
             print()
             new_user = input("Enter the name of the user to add: ")
-            new_user_number = user_count + 1
+            user_count += 1
+            new_user_number = user_count
             user_list.update({new_user_number: new_user})
             print()
             print(new_user + " added!")
