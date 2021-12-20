@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+# Used to display date and time for messages.
 from datetime import date
 from datetime import datetime
+# Used to make sure chat directory exists.
 import os
+# Used to exit safely.
 import sys
+# Used to set home directory for chat logs.
 import platform
+# Used for dice rolling
+import random
 
 # Set up main function
 def main():
@@ -26,7 +32,7 @@ def main():
     user_list, user_count = get_users()
     log_file = get_log_file(log_dir)
     # Chat and log to file.
-    chat(user_list, log_file, user_count)
+    chat(user_list, log_dir, log_file, user_count)
     # Close file and finish up.
     log_file.close()
 
@@ -55,15 +61,19 @@ def get_users():
         if user_name == "q":
             clear()
             sys.exit(0)
+        elif user_name =="n" and user_number > 1:
+            user_number -= 1
+            return user_list, user_number
         else:
             # Add user.
             user_list.update({user_number: user_name})
-        continue_check = input("Would you like to add another user? (Y/n):" )
+        continue_check = input("Would you like to add another user? (Y/n): " )
         # Check if they want to add another user.
         if continue_check.lower() == "n":
             return user_list, user_number
         if continue_check.lower() == "y":
             print("User added.")
+            print("If you mistyped, enter n to stop adding users.")
             user_number += 1
         else:
             # Deal with nonsense inputs.
@@ -104,7 +114,7 @@ def get_log_file(log_dir):
     else:
         return log_file
 
-def chat(user_list, log_file, user_count):
+def chat(user_list, log_dir, log_file, user_count):
     # Read off the existing chat lines.
     chat_message = ""
     # Set first active user to be user 1, as this is the
@@ -137,7 +147,8 @@ def chat(user_list, log_file, user_count):
         print("Type " + str(counter) + " to send messages as " + user_list[counter] + ",")
         counter += 1
     print("Or type /quit to quit (case sensitive).")
-    print("Type /help to view a help message.")
+    print("Type /help to view a help message,")
+    print("and /users to see a list of all users.")
     print()
 
     # Check for special inputs and handle accordingly
@@ -201,12 +212,67 @@ def chat(user_list, log_file, user_count):
             print()
 
         # List all users
-        elif chat_message == "/users":
+        elif chat_message == "/users" or chat_message == "/switch":
             user_counter = 1
             print("Users:")
             while user_counter in user_list:
                 print("Type " + str(user_counter) + " to send messages as " + user_list[user_counter])
                 user_counter += 1
+         
+        # Quote saving and retrieval
+        elif chat_message.startswith("/quote") == True:
+            quote_path = log_dir + "/quotes.txt"
+            if chat_message == "/quote":
+                # Read from quote file
+                try:
+                    quote_file = open(quote_path, "r")
+                except:
+                    quote_file = open(quote_path, "w")
+                    quote_file.close()
+                    quote_file = open(quote_path, "r")
+                # Put all lines in a list
+                quote_list = []
+                for line in quote_file:
+                    quote_list.append(line)
+                # Pick random line
+                random.seed()
+                try:
+                    quote_count = len(quote_list)
+                    random_quote = quote_list[random.randrange(0, quote_count)]
+                    print(random_quote, end="")
+                    log_file.write(preface + chat_message + "\n")
+                    # Write to log file so it's not confusing later
+                    chat_message = "MultiChat: " + random_quote
+                    log_file.write(chat_message)
+                except:
+                    print("Unable to access quotes, do any exist?")
+                # Close the file
+                quote_file.close()
+            elif "/quotes" in chat_message:
+                print("MultiChat: Did you mean /quote?")
+            elif chat_message.startswith("/quote ") == True:
+                # Open quote file
+                quote_file = open(quote_path, "a")
+                # Remove /quote from message
+                try:
+                    chat_message = chat_message.removeprefix("/quote ")
+                    # Add quote
+                    today = str(now.strftime("%A, %B %d, %Y"))
+                    quote_text =  "On " + today + ", " + active_user + " said: " + chat_message + "\n"
+                    quote_file.write(quote_text)
+                    # Write to log file so it's not confusing later
+                    chat_message = chat_message
+                    log_file.write(active_user + ' added: "' + chat_message + '" to the quotes!' + "\n")
+                    print("Multichat: Quote added!")
+                except:
+                    print("Error: Could not remove /quote from message.")
+                # Close file
+                finally:
+                    quote_file.close()
+            else:
+                print("MultiChat: Did you mean /quote?")
+            
+            # Add to quote file
 
         # List commands
         elif chat_message == "/commands":
@@ -214,12 +280,30 @@ def chat(user_list, log_file, user_count):
             print("Commands:")
             print("/add: Add new user.")
             print("/commands: View this message.")
+            print("/dice <number>: Roll a die with <number> faces.")
             print("/help: View a help message.")
             print("/nolog: Do not save the following message.")
             print("/quit: Save and quit MultiChat.")
+            print("/quote: View random quotes you've added.")
+            print("/quote <text>: Add text to the quotes list.") 
             print("/shrug: Send a shrug emote.")
+            print("/switch: Same as /users.")
             print("/users: List users in session.")
             print()
+
+        # Dice rolling
+        elif chat_message == "/dice":
+            print("MultiChat: /dice syntax: /dice <number>")
+        elif chat_message.startswith("/dice ") == True:
+            dice_sides = chat_message.removeprefix("/dice ")
+            try:
+                dice_sides = int(dice_sides)
+                random.seed()
+                dice_roll = str(random.randrange(1, dice_sides))
+                print("You rolled a " + dice_roll + "!")
+                log_file.write(active_user + " rolled a " +  str(dice_sides) + "-sided die and rolled a " + dice_roll + "!\n")
+            except:
+                print("Can't roll die! " + str(dice_sides) + " is not a number!")
         
         # Easter eggs and references
         # Table flipping
@@ -246,6 +330,11 @@ def chat(user_list, log_file, user_count):
             eyes = "👀"
             print(preface + eyes)
             log_file.write(preface + "Eyes emoji\n")
+
+        # Beetlejuice
+        elif "beetlejuice" in chat_message.lower():
+            print("Say it again!")
+            log_file.write(preface + chat_message)
 
         # Not an easter egg, too lazy to move it
         # Allows for not saving a message upon request
