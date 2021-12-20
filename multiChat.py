@@ -4,6 +4,8 @@ from datetime import date
 from datetime import datetime
 # Used to make sure chat directory exists.
 import os
+# Proper arrow key scrolling
+import readline
 # Used to exit safely.
 import sys
 # Used to set home directory for chat logs.
