@@ -307,12 +307,15 @@ def chat(user_list, log_dir, log_file, user_count):
             dice_sides = chat_message.removeprefix("/dice ")
             try:
                 dice_sides = int(dice_sides)
-                random.seed()
-                dice_roll = str(random.randrange(1, dice_sides))
+                if dice_sides == 1:
+                    dice_roll = 1
+                else:
+                    random.seed()
+                    dice_roll = str(random.randrange(1, dice_sides))
                 print("You rolled a " + dice_roll + "!")
                 log_file.write(active_user + " rolled a " +  str(dice_sides) + "-sided die and rolled a " + dice_roll + "!\n")
             except:
-                print("Can't roll die! " + str(dice_sides) + " is not a number!")
+                print("Can't roll die! " + str(dice_sides) + " is not a valid number!")
         
         # Easter eggs and references
         # Table flipping
