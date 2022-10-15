@@ -290,6 +290,7 @@ def chat(user_list, log_dir, log_file, user_count):
             print("/add: Add new user.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
+            print("/random: Change to a random user.")
             print("/help: View a help message.")
             print("/nolog: Do not save the following message.")
             print("/quit: Save and quit MultiChat.")
@@ -317,6 +318,19 @@ def chat(user_list, log_dir, log_file, user_count):
             except:
                 print("Can't roll die! " + str(dice_sides) + " is not a valid number!")
         
+        # Change to random user
+        elif chat_message == "/random":
+            if user_count < 3:
+                print("Changing to a random user is useful only if there are more than two users.")
+            else:
+                while True:
+                    # Choose a random number from 1 to user_count.
+                    random_number = random.randrange(1, user_count + 1)
+                    # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
+                    if active_user != user_list[random_number]:
+                        active_user = user_list[random_number]
+                        break
+
         # Easter eggs and references
         # Table flipping
         elif chat_message.lower() == "flips table" or chat_message.lower() == "tableflip" or chat_message.lower() == "table flip":
