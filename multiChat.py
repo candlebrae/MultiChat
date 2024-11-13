@@ -328,13 +328,9 @@ def chat(user_list, log_dir, log_file, user_count):
             tag = chat_message.removeprefix("/proxy ")
             if tag:
                 reverse_user_lookup = res = dict((v,k) for k,v in user_list.items())
-                print(active_user)
-                print(user_list)
-                print(reverse_user_lookup)
                 old_tag = reverse_user_lookup[active_user]
                 user_list[tag] = active_user
                 del user_list[old_tag]
-                print(user_list)
                 print(active_user + "'s proxy changed to " + tag)
                 list_users(user_list)
             else:
@@ -402,9 +398,12 @@ def chat(user_list, log_dir, log_file, user_count):
 
         # Shrug
         elif chat_message.lower() == "shrug" or chat_message.lower() == "shrugs" or chat_message == "/shrug":
-            shrug = preface + "¯\\_(ツ)_/¯"
-            print(shrug)
-            log_file.write(shrug + "\n")
+            try:
+                shrug = preface + "¯\\_('u')_/¯"
+                print(shrug)
+                log_file.write(active_user + " shrugs.")
+            except:
+                print("Inexplicably, your shoulders fail to rise. The power of /shrug is beyond you.")
 
         # Losing the Game (sorry)
         elif chat_message.lower() == "the game":
