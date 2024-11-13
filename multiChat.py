@@ -99,6 +99,9 @@ def get_users():
             raise SystemExit
         elif user_name == "/load":
             user_list, user_counter = load_users()
+            user_number = user_counter
+            continue_entry = False
+            return user_list, user_counter
         elif user_name =="n" and user_number > 1:
             user_number -= 1
             return user_list, user_number
