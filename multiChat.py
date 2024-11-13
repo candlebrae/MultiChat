@@ -326,13 +326,16 @@ def chat(user_list, log_dir, log_file, user_count):
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
             tag = chat_message.removeprefix("/proxy ")
-            if len(tag) > 0 and len(chat_message) > 6:
-                reverse_user_lookup = res = dict((v,k) for k,v in user_list.items())
-                old_tag = reverse_user_lookup[active_user]
-                user_list[tag] = active_user
-                del user_list[old_tag]
-                print(active_user + "'s proxy changed to " + tag)
-                list_users(user_list)
+            if len(tag) > 0 and len(chat_message) > 6 and "/proxy" not in tag:
+                if tag not in ["/add", "/clear", "/commands", "/dice", "/exit", "/quit", "/random", "/help", "/load", "/save", "/nolog", "/quote", "/shrug", "/switch", "/users"]:
+                    reverse_user_lookup = res = dict((v,k) for k,v in user_list.items())
+                    old_tag = reverse_user_lookup[active_user]
+                    user_list[tag] = active_user
+                    del user_list[old_tag]
+                    print(active_user + "'s proxy changed to " + tag)
+                    list_users(user_list)
+                else:
+                    print("Commands cannot be proxies.")
             else:
                 print("Please supply a new tag: /proxy <tag>")
 
@@ -454,4 +457,9 @@ def chat(user_list, log_dir, log_file, user_count):
 
 
 # Run main function
-main()
+try:
+    main()
+except KeyboardInterrupt:
+    clear()
+    log_file.write("\n\n")
+    print("Quitting.")
