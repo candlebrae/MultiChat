@@ -326,7 +326,7 @@ def chat(user_list, log_dir, log_file, user_count):
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
             tag = chat_message.removeprefix("/proxy ")
-            if tag:
+            if len(tag) > 0 and len(chat_message) > 6:
                 reverse_user_lookup = res = dict((v,k) for k,v in user_list.items())
                 old_tag = reverse_user_lookup[active_user]
                 user_list[tag] = active_user
