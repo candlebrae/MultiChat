@@ -11,10 +11,40 @@ try:
     if platform.system() != "Windows": import readline
 except:
     print("Could not import readline.")
-# Used to exit safely.
-import sys
 # Used for dice rolling
 import random
+# Used to save/load users
+import pickle
+
+def add_user(user, user_list, user_count):
+    if user:
+        user_count += 1
+        new_user_number = user_count
+        user_list.update({new_user_number: user})
+        print()
+        print(user + " added!")
+        print("Type " + str(new_user_number) + " to send messages as " + user + ".")
+        print()
+    else:
+        print("Please enter a username when adding a new user.")
+    return user_list, user_count
+
+def load_users():
+    if os.path.isfile("saved-users.pkl") == False: 
+        print("No users to load. Save current users by sending /save.")
+    else:
+        with open("saved-users.pkl", "rb") as savefile:
+            user_list = pickle.load(savefile)
+            print("Loaded users from file.")
+            user_counter = 1
+            while user_counter in user_list:
+                print("Type " + str(user_counter) + " to send messages as " + user_list[user_counter])
+                user_counter += 1
+    return user_list, user_counter
+
+def list_users(user_list):
+    for user in user_list:
+        print("Type " + str(user) + " to send messages as " + user_list[user])
 
 # Set up main function
 def main():
@@ -56,38 +86,43 @@ def get_users():
     user_number = 1
     clear()
     print("Welcome to MultiChat!")
+    print()
+    print("If you'd like to load saved users, enter /load.")
     while continue_entry == True:
         # Get user name and add to dictionary
         # Dictionary format:
         # Number: Name
-        print()
-        user_name = input("Enter the name of user " + str(user_number) + ", or q to quit: ")
+        user_name = input("Otherwise, enter the name of user " + str(user_number) + " or q to quit: ")
         # Allow for insta-quitting.
         if user_name == "q":
             clear()
-            sys.exit(0)
+            raise SystemExit
+        elif user_name == "/load":
+            user_list, user_counter = load_users()
         elif user_name =="n" and user_number > 1:
             user_number -= 1
             return user_list, user_number
-        else:
+        elif user_name:
             # Add user.
             user_list.update({user_number: user_name})
-        continue_check = input("Would you like to add another user? (Y/n): " )
-        # Check if they want to add another user.
-        if continue_check.lower() == "n":
-            return user_list, user_number
-        if continue_check.lower() == "y":
-            print("User added.")
-            print("If you mistyped, enter n to stop adding users.")
-            user_number += 1
+            continue_check = input("Would you like to add another user? (Y/n): " )
+            # Check if they want to add another user.
+            if continue_check.lower() == "n" or continue_check.lower() == "":
+                return user_list, user_number
+            if continue_check.lower() == "y":
+                print("If you mistyped, enter n to stop adding users.")
+                user_number += 1
+            else:
+                # Deal with nonsense inputs.
+                while continue_check.lower() != "y" and continue_check.lower() != "n":
+                    continue_check = input("Enter y or n: ")
+                    if continue_check.lower() == "n":
+                        return user_list, user_number
+                    if continue_check.lower() == "y":
+                        user_number += 1
         else:
-            # Deal with nonsense inputs.
-            while continue_check.lower() != "y" and continue_check.lower() != "n":
-                continue_check = input("Enter y or n: ")
-                if continue_check.lower() == "n":
-                    return user_list, user_number
-                if continue_check.lower() == "y":
-                    user_number += 1
+            print("Please enter a username.")
+            continue_entry = True
             
 def get_log_file(log_dir):
     # Get or create log file.
@@ -99,7 +134,7 @@ def get_log_file(log_dir):
         log_file_name = "chat"
     # Check for quitting.
     if log_file_name == "q":
-        sys.exit(0)
+        raise SystemExit
     try:
         log_file_name = log_dir + "/" + log_file_name + ".txt"
         print(log_file_name)
@@ -127,7 +162,7 @@ def chat(user_list, log_dir, log_file, user_count):
     # Set first active user to be user 1, as this is the
     # most expected behavior and prevents sending messages
     # as no one.
-    active_user = user_list[1]
+    active_user = next(iter(user_list))
 
     # Add a date marker to the top of the log file
     # (or if appending to an existing file, to the end of it).
@@ -148,11 +183,8 @@ def chat(user_list, log_dir, log_file, user_count):
         print("Error getting date.")
     
     # Print instructions for user
-    counter = 1
     print("Welcome to MultiChat!")
-    while counter in user_list:
-        print("Type " + str(counter) + " to send messages as " + user_list[counter] + ",")
-        counter += 1
+    list_users(user_list)
     print("Or type /quit to quit (case sensitive).")
     print()
     print("Type /help to view a help message,")
@@ -160,18 +192,19 @@ def chat(user_list, log_dir, log_file, user_count):
     print()
 
     # Check for special inputs and handle accordingly
-    while chat_message != "/quit":
+    while chat_message not in ["/quit", "/exit"]:
         # Get the time.
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         # Set up message preface (used to identify messages)
-        preface = active_user + ", " + current_time + ": "
+        preface = str(active_user) + ", " + current_time + ": "
         # Get chat message.
         chat_message = input(preface)
         # If message is just a number, switch active user to that entry.
         # Do not record the number in the log file.
         try:
-            chat_message = int(chat_message)
+            user_list[chat_message]
+            #chat_message = int(chat_message)
         except:
             chat_message = chat_message
         else:
@@ -189,7 +222,7 @@ def chat(user_list, log_dir, log_file, user_count):
             finally:
                 chat_message = str(chat_message)
         # If we're quitting, add space in the text file, and notify user.
-        if chat_message == "/quit":
+        if chat_message == "/quit" or chat_message == "/exit":
             clear()
             print("Chat saved.")
             try:
@@ -212,21 +245,19 @@ def chat(user_list, log_dir, log_file, user_count):
         elif chat_message == "/add":
             print()
             new_user = input("Enter the name of the user to add: ")
-            user_count += 1
-            new_user_number = user_count
-            user_list.update({new_user_number: new_user})
-            print()
-            print(new_user + " added!")
-            print("Type " + str(new_user_number) + " to send messages as " + new_user + ".")
-            print()
+            user_list, user_count = add_user(new_user, user_list, user_count)
+        elif chat_message.startswith("/add ") == True:
+            new_user = chat_message.removeprefix("/add ")
+            user_list, user_count = add_user(new_user, user_list, user_count)
+
+        # Clear the screen
+        elif chat_message == "/clear":
+            clear()
 
         # List all users
         elif chat_message == "/users" or chat_message == "/switch":
-            user_counter = 1
             print("Users:")
-            while user_counter in user_list:
-                print("Type " + str(user_counter) + " to send messages as " + user_list[user_counter])
-                user_counter += 1
+            list_users(user_list)
          
         # Quote saving and retrieval
         elif chat_message.startswith("/quote") == True:
@@ -281,21 +312,51 @@ def chat(user_list, log_dir, log_file, user_count):
             else:
                 print("MultiChat: Did you mean /quote?")
             
-            # Add to quote file
+        # Save users to file
+        elif chat_message == "/save":
+            with open("saved-users.pkl", "wb") as savefile:
+                pickle.dump(user_list, savefile)
+            print("Saved users to file.")
+
+        # Load users from file
+        elif chat_message == "/load":
+            user_list, user_counter = load_users()
+
+        # Load users from file
+        elif chat_message.startswith("/proxy") == True:
+            tag = chat_message.removeprefix("/proxy ")
+            if tag:
+                reverse_user_lookup = res = dict((v,k) for k,v in user_list.items())
+                print(active_user)
+                print(user_list)
+                print(reverse_user_lookup)
+                old_tag = reverse_user_lookup[active_user]
+                user_list[tag] = active_user
+                del user_list[old_tag]
+                print(user_list)
+                print(active_user + "'s proxy changed to " + tag)
+                list_users(user_list)
+            else:
+                print("Please supply a new tag: /proxy <tag>")
 
         # List commands
         elif chat_message == "/commands":
             print()
             print("Commands:")
-            print("/add: Add new user.")
+            print("/add <username>: Add new user.")
+            print("/clear: Clear the screen.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
+            print("/exit: Save and quit MultiChat.")
             print("/random: Change to a random user.")
             print("/help: View a help message.")
+            print("/load: Load saved users from file. Overwrites current user list!") 
             print("/nolog: Do not save the following message.")
+            print("/proxy <tag>: Change the current user's proxy to <tag>.")
             print("/quit: Save and quit MultiChat.")
             print("/quote: View random quotes you've added.")
             print("/quote <text>: Add text to the quotes list.") 
+            print("/save: Save list of current users to file.") 
             print("/shrug: Send a shrug emote.")
             print("/switch: Same as /users.")
             print("/users: List users in session.")
