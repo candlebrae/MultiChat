@@ -107,7 +107,7 @@ def get_users():
             return user_list, user_number
         elif user_name:
             # Add user.
-            user_list.update({user_number: user_name})
+            user_list.update({str(user_number): str(user_name)})
             continue_check = input("Would you like to add another user? (Y/n): " )
             # Check if they want to add another user.
             if continue_check.lower() == "n" or continue_check.lower() == "":
@@ -203,10 +203,16 @@ def chat(user_list, log_dir, log_file, user_count):
         preface = str(active_user) + ", " + current_time + ": "
         # Get chat message.
         chat_message = input(preface)
-        # If message is just a number, switch active user to that entry.
+
+        # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
         try:
-            user_list[chat_message]
+            if chat_message in user_list.keys():
+                active_user = user_list[chat_message]
+                log_file.write("\n")
+                print()
+            else:
+                chat_message = chat_message
             #chat_message = int(chat_message)
         except:
             chat_message = chat_message
@@ -215,15 +221,7 @@ def chat(user_list, log_dir, log_file, user_count):
             # If it doesn't work, tell the user it's not working.
             # Then make sure that chat_message is a string so as
             # not to mess up other checks.
-            try:
-                active_user = user_list[chat_message]
-            except:
-                print("Cannot switch to a user that doesn't exist!")
-            else:
-                log_file.write("\n")
-                print()
-            finally:
-                chat_message = str(chat_message)
+            chat_message = str(chat_message)
         # If we're quitting, add space in the text file, and notify user.
         if chat_message == "/quit" or chat_message == "/exit":
             clear()
