@@ -52,8 +52,14 @@ def main():
     if platform.system() == "Windows":
         env_home = os.getenv('APPDATA')
     else:
-        env_home = os.environ['HOME']
-    log_dir = env_home + "/.multichat"
+        env_home = os.environ('XDG_DATA_HOME')
+        if os.path.isdir(log_dir) == False: # Maybe they don't have that set
+            env_home = os.environ['HOME'] + "/.local/share"
+        if os.path.isdir(log_dir) == False: # ...Documents, then?
+            env_home = os.environ['HOME'] + "/Documents"
+        if os.path.isdir(log_dir) == False: # Fine, home directory it is
+            env_home = os.environ['HOME']
+    log_dir = env_home + "/multichat"
 
     try:
         if os.path.isdir(log_dir) == False: os.mkdir(log_dir)
