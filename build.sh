@@ -1,0 +1,1 @@
+pyinstaller -F --icon=icon.ico -c -n=multichat multiChat.py
