@@ -31,7 +31,8 @@ def add_user(user, user_list, user_count):
 
 def load_users():
     if os.path.isfile("saved-users.pkl") == False: 
-        print("No users to load. Save current users by sending /save.")
+        print("No users to load. Save current users by sending /save\nwhile in chat.")
+        return {}, 0
     else:
         with open("saved-users.pkl", "rb") as savefile:
             user_list = pickle.load(savefile)
@@ -52,12 +53,15 @@ def main():
     if platform.system() == "Windows":
         env_home = os.getenv('APPDATA')
     else:
-        env_home = os.environ('XDG_DATA_HOME')
-        if os.path.isdir(log_dir) == False: # Maybe they don't have that set
+        try:
+            env_home = os.environ['XDG_DATA_HOME']
+            if os.path.isdir(env_home) == False: # Maybe they don't have that set
+                env_home = os.environ['HOME'] + "/.local/share"
+        except TypeError:
             env_home = os.environ['HOME'] + "/.local/share"
-        if os.path.isdir(log_dir) == False: # ...Documents, then?
+        if os.path.isdir(env_home) == False: # ...Documents, then?
             env_home = os.environ['HOME'] + "/Documents"
-        if os.path.isdir(log_dir) == False: # Fine, home directory it is
+        if os.path.isdir(env_home) == False: # Fine, home directory it is
             env_home = os.environ['HOME']
     log_dir = env_home + "/multichat"
 
@@ -105,9 +109,10 @@ def get_users():
             raise SystemExit
         elif user_name == "/load":
             user_list, user_counter = load_users()
-            user_number = user_counter
-            continue_entry = False
-            return user_list, user_counter
+            if user_list:
+                user_number = user_counter
+                continue_entry = False
+                return user_list, user_counter
         elif user_name =="n" and user_number > 1:
             user_number -= 1
             return user_list, user_number
