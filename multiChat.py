@@ -20,7 +20,7 @@ def add_user(user, user_list, user_count):
     if user:
         user_count += 1
         new_user_number = user_count
-        user_list.update({new_user_number: user})
+        user_list.update({str(new_user_number): str(user)})
         print()
         print(user + " added!")
         print("Type " + str(new_user_number) + " to send messages as " + user + ".")
@@ -216,6 +216,7 @@ def chat(user_list, log_dir, log_file, user_count):
         # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
         try:
+            print(user_list)
             if chat_message in user_list.keys():
                 active_user = user_list[chat_message]
                 log_file.write("\n")
@@ -446,10 +447,9 @@ def chat(user_list, log_dir, log_file, user_count):
             print("/nolog: Back to logging messages.")
         
         # Patas (Spanish for feet, inside joke reference)
-        elif "patas" in chat_message.lower():
-            print("\nMultiChat: You know what you did.")
-            print("MultiChat: ( ´･ω･)\n")
-            log_file.write(preface + chat_message + "\n") 
+        elif "thumbsup" in chat_message.lower():
+            print(preface + "👍")
+            log_file.write(preface + "👍" + "\n") 
 
         # Done with easter eggs, back to regular code.
         # If there are no special cases, try to append the
