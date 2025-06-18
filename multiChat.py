@@ -96,45 +96,41 @@ def get_users():
     print("Welcome to MultiChat!")
     print()
     print("If you'd like to load saved users, enter /load.")
+
+    user_name = input("Otherwise, enter the name of user " + str(user_number) + " or q to quit: ")
+
+    # Get user name and add to dictionary
+    # Dictionary format:
+    # Number: Name
     while continue_entry == True:
-        # Get user name and add to dictionary
-        # Dictionary format:
-        # Number: Name
-        user_name = input("Otherwise, enter the name of user " + str(user_number) + " or q to quit: ")
         # Allow for insta-quitting.
         if user_name == "q":
             clear()
             raise SystemExit
+        # We're done here- chat time
+        elif user_name =="n" and user_number > 1:
+            user_number -= 1
+            return user_list, user_number
+        # Load existing users if they exist
         elif user_name == "/load":
             user_list, user_counter = load_users()
             if user_list:
                 user_number = user_counter
                 continue_entry = False
                 return user_list, user_counter
-        elif user_name =="n" and user_number > 1:
-            user_number -= 1
-            return user_list, user_number
+            else:
+                print("No saved users found.")
+        # We have a username!
         elif user_name:
             # Add user.
             user_list.update({str(user_number): str(user_name)})
-            continue_check = input("Would you like to add another user? (Y/n): " )
-            # Check if they want to add another user.
-            if continue_check.lower() == "n" or continue_check.lower() == "":
-                return user_list, user_number
-            if continue_check.lower() == "y":
-                print("If you mistyped, enter n to stop adding users.")
-                user_number += 1
-            else:
-                # Deal with nonsense inputs.
-                while continue_check.lower() != "y" and continue_check.lower() != "n":
-                    continue_check = input("Enter y or n: ")
-                    if continue_check.lower() == "n":
-                        return user_list, user_number
-                    if continue_check.lower() == "y":
-                        user_number += 1
+            user_number += 1
+            print("If you're done, enter n to stop adding users.")
+        # Bogus inputs
         else:
             print("Please enter a username.")
             continue_entry = True
+        user_name = input("Enter the name of user " + str(user_number) + " or q to quit: ")
             
 def get_log_file(log_dir):
     # Get or create log file.
@@ -216,7 +212,6 @@ def chat(user_list, log_dir, log_file, user_count):
         # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
         try:
-            print(user_list)
             if chat_message in user_list.keys():
                 active_user = user_list[chat_message]
                 log_file.write("\n")
