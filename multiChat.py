@@ -16,10 +16,12 @@ import random
 # Used to save/load users
 import pickle
 
-def add_user(user, user_list, user_count):
+# Add a new user, updating both the user list and count (used to more easily
+# iterate users- yes, len() would be better. This is old code. I'll fix it 
+# eventually.)
+def add_user(user, user_list):
     if user:
-        user_count += 1
-        new_user_number = user_count
+        new_user_number = len(user_list) + 1
         user_list.update({str(new_user_number): str(user)})
         print()
         print(user + " added!")
@@ -27,8 +29,9 @@ def add_user(user, user_list, user_count):
         print()
     else:
         print("Please enter a username when adding a new user.")
-    return user_list, user_count
+    return user_list
 
+# Load existing users
 def load_users():
     if os.path.isfile("saved-users.pkl") == False: 
         print("No users to load. Save current users by sending /save\nwhile in chat.")
@@ -37,12 +40,11 @@ def load_users():
         with open("saved-users.pkl", "rb") as savefile:
             user_list = pickle.load(savefile)
             print("Loaded users from file.")
-            user_counter = 1
-            while user_counter in user_list:
-                print("Type " + str(user_counter) + " to send messages as " + user_list[user_counter])
-                user_counter += 1
-    return user_list, user_counter
+            for user in user_list.keys():
+                print("Type " + str(user) + " to send messages as " + str(user_list[user]))
+    return user_list
 
+# List out all users in list- output for the user to figure out who's there
 def list_users(user_list):
     for user in user_list:
         print("Type " + str(user) + " to send messages as " + user_list[user])
@@ -72,10 +74,10 @@ def main():
         print("Error code:", error)
 
     # Get user names and the file to log to.
-    user_list, user_count = get_users()
+    user_list = get_users()
     log_file = get_log_file(log_dir)
     # Chat and log to file.
-    chat(user_list, log_dir, log_file, user_count)
+    chat(user_list, log_dir, log_file)
     # Close file and finish up.
     log_file.close()
 
@@ -113,11 +115,11 @@ def get_users():
             return user_list, user_number
         # Load existing users if they exist
         elif user_name == "/load":
-            user_list, user_counter = load_users()
+            user_list = load_users()
             if user_list:
-                user_number = user_counter
+                user_number = len(user_list)
                 continue_entry = False
-                return user_list, user_counter
+                return user_list
             else:
                 print("No saved users found.")
         # We have a username!
@@ -164,7 +166,7 @@ def get_log_file(log_dir):
     else:
         return log_file
 
-def chat(user_list, log_dir, log_file, user_count):
+def chat(user_list, log_dir, log_file):
     # Read off the existing chat lines.
     chat_message = ""
     # Set first active user to be user 1, as this is the
@@ -251,10 +253,10 @@ def chat(user_list, log_dir, log_file, user_count):
         elif chat_message == "/add":
             print()
             new_user = input("Enter the name of the user to add: ")
-            user_list, user_count = add_user(new_user, user_list, user_count)
+            user_list = add_user(new_user, user_list)
         elif chat_message.startswith("/add ") == True:
             new_user = chat_message.removeprefix("/add ")
-            user_list, user_count = add_user(new_user, user_list, user_count)
+            user_list = add_user(new_user, user_list)
 
         # Clear the screen
         elif chat_message == "/clear":
@@ -326,7 +328,7 @@ def chat(user_list, log_dir, log_file, user_count):
 
         # Load users from file
         elif chat_message == "/load":
-            user_list, user_counter = load_users()
+            user_list = load_users()
 
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
@@ -386,12 +388,12 @@ def chat(user_list, log_dir, log_file, user_count):
         
         # Change to random user
         elif chat_message == "/random":
-            if user_count < 3:
+            if len(user_list) < 3:
                 print("Changing to a random user is useful only if there are more than two users.")
             else:
                 while True:
                     # Choose a random number from 1 to user_count.
-                    random_number = random.randrange(1, user_count + 1)
+                    random_number = str(random.randrange(1, len(user_list) + 1))
                     # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
                     if active_user != user_list[random_number]:
                         active_user = user_list[random_number]
