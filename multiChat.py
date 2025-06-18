@@ -55,9 +55,7 @@ def main():
     else:
         try:
             env_home = os.environ['XDG_DATA_HOME']
-            if os.path.isdir(env_home) == False: # Maybe they don't have that set
-                env_home = os.environ['HOME'] + "/.local/share"
-        except TypeError:
+        except:
             env_home = os.environ['HOME'] + "/.local/share"
         if os.path.isdir(env_home) == False: # ...Documents, then?
             env_home = os.environ['HOME'] + "/Documents"

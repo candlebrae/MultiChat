@@ -324,8 +324,9 @@ class MultiChat:
         if platform.system() == "Windows":
             env_home = os.getenv('APPDATA') # Easy
         else: # Linux or MacOS
-            env_home = os.environ['XDG_DATA_HOME']
-            if os.path.isdir(env_home) == False: # Maybe they don't have that set
+            try:
+                env_home = os.environ['XDG_DATA_HOME']
+            except: # Maybe they don't have that set
                 env_home = os.environ['HOME'] + "/.local/share"
             if os.path.isdir(env_home) == False: # ...Documents, then?
                 env_home = os.environ['HOME'] + "/Documents"
