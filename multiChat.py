@@ -32,7 +32,7 @@ def add_user(user, user_list):
     return user_list
 
 # Load existing users
-def load_users():
+def load_users(output: bool):
     if os.path.isfile("saved-users.pkl") == False: 
         print("No users to load. Save current users by sending /save\nwhile in chat.")
         return {}, 0
@@ -40,8 +40,9 @@ def load_users():
         with open("saved-users.pkl", "rb") as savefile:
             user_list = pickle.load(savefile)
             print("Loaded users from file.")
-            for user in user_list.keys():
-                print("Type " + str(user) + " to send messages as " + str(user_list[user]))
+            if output == True:
+                for user in user_list.keys():
+                    print("Type " + str(user) + " to send messages as " + str(user_list[user]))
     return user_list
 
 # List out all users in list- output for the user to figure out who's there
@@ -113,9 +114,12 @@ def get_users():
         elif user_name =="n" and user_number > 1:
             user_number -= 1
             return user_list, user_number
+        # Fast bypass if users already are saved to file- else, complain
+        if user_name == "":
+            user_name = "/load"
         # Load existing users if they exist
-        elif user_name == "/load":
-            user_list = load_users()
+        if user_name == "/load":
+            user_list = load_users(False)
             if user_list:
                 user_number = len(user_list)
                 continue_entry = False
@@ -328,7 +332,7 @@ def chat(user_list, log_dir, log_file):
 
         # Load users from file
         elif chat_message == "/load":
-            user_list = load_users()
+            user_list = load_users(True)
 
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
