@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Used to display date and time for messages.
-from datetime import date
-from datetime import datetime
+from datetime import date, datetime
 # Used to set home directory for chat logs.
 import platform
 # Used to make sure chat directory exists.
@@ -16,6 +15,7 @@ import random
 # Used to save/load users
 import pickle
 # Colored names!
+# TODO: pip dependency. Check if installed. If not, warn user.
 from termcolor import colored;
 
 # Add a new user, updating both the user list and count (used to more easily
@@ -119,7 +119,7 @@ def get_users():
         # We're done here- chat time
         elif user_name =="n" and user_number > 1:
             user_number -= 1
-            return user_list, user_number
+            return user_list
         # Fast bypass if users already are saved to file- else, complain
         if user_name == "":
             user_name = "/load"
@@ -185,6 +185,7 @@ def chat(user_list, log_dir, log_file):
     # Also fix the old /save format to match the new format 
     # (so color can happen!)
     active_user = next(iter(user_list))
+    print(user_list)
     if not isinstance(user_list[active_user], dict):
         user_list[active_user] = {"username": str(user_list[active_user]), "color": "default"}
         print(user_list[active_user])
