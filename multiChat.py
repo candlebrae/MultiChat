@@ -5,6 +5,7 @@ from datetime import date, datetime
 import platform
 # Used to make sure chat directory exists.
 import os
+from pathlib import Path
 # Proper arrow key scrolling on Un*x
 try:
     if platform.system() != "Windows": import readline
@@ -17,6 +18,65 @@ import pickle
 # Colored names!
 # TODO: pip dependency. Check if installed. If not, warn user.
 from termcolor import colored;
+
+# Decide where to look for the settings file
+def get_settings_dir():
+    if platform.system() == "Windows":
+        env_home = os.getenv('APPDATA')
+    else:
+        try:
+            basepath = os.environ['XDG_CONFIG_HOME']
+        except:
+            basepath = os.environ['HOME'] + "/.config"
+            if os.path.isdir(basepath) == False: # ...Documents, then?
+                basepath = os.environ['HOME'] + "/Documents"
+            if os.path.isdir(basepath) == False: # Fine, home directory it is
+                basepath = os.environ['HOME']
+    settingpath = basepath + "/multichat"
+    if os.path.isdir(settingpath) == False: os.mkdir(settingpath)
+    return settingpath
+
+# Make the default settings
+def build_default_settings():
+    # Figure out default chatlog file location- distinct from settings location!
+    log_dir = get_log_dir()
+    # Build the settings dict
+    default_settings = {"savedir": log_dir, "timestamps": True}
+    return default_settings
+
+# Either get the user's existing settings, or assign the defaults
+def retrieve_settings():
+    settings_dir = get_settings_dir()
+    print(settings_dir)
+    if os.path.isfile(settings_dir + "/settings.pkl") == False: 
+        return build_default_settings()
+    else:
+        with open(settings_dir + "/settings.pkl", "rb") as settingsfile:
+            settings = pickle.load(settingsfile)
+        return settings
+
+# Save user settings to file
+def save_settings(settings, settings_dir):
+    if os.path.isdir(settings_dir) == False: os.mkdir(settings)
+    with open (settings_dir + "/settings.pkl", "wb") as settingfile:
+        pickle.dump(settings, settingfile)
+    return True
+
+# Decide where the (default) chatlog save directory should be
+def get_log_dir():
+    if platform.system() == "Windows":
+        env_home = os.getenv('APPDATA')
+    else:
+        try:
+            env_home = os.environ['XDG_DATA_HOME']
+        except:
+            env_home = os.environ['HOME'] + "/.local/share"
+        if os.path.isdir(env_home) == False: # ...Documents, then?
+            env_home = os.environ['HOME'] + "/Documents"
+        if os.path.isdir(env_home) == False: # Fine, home directory it is
+            env_home = os.environ['HOME']
+    log_dir = env_home + "/multichat"
+    return log_dir
 
 # Add a new user, updating both the user list and count (used to more easily
 # iterate users- yes, len() would be better. This is old code. I'll fix it 
@@ -35,11 +95,12 @@ def add_user(user, user_list):
 
 # Load existing users
 def load_users(output: bool):
-    if os.path.isfile("saved-users.pkl") == False: 
+    settings_dir = get_settings_dir()
+    if os.path.isfile(settings_dir + "/saved-users.pkl") == False: 
         print("No saved users found. Save current users by sending /save\nwhile in chat.")
         return {}
     else:
-        with open("saved-users.pkl", "rb") as savefile:
+        with open(settings_dir + "/saved-users.pkl", "rb") as savefile:
             user_list = pickle.load(savefile)
             print("Loaded users from file.")
             if output == True:
@@ -58,20 +119,10 @@ def list_users(user_list):
 
 # Set up main function
 def main():
+    # Get user settings, including log directory location
+    settings = retrieve_settings()
     # Set up a log directory
-    if platform.system() == "Windows":
-        env_home = os.getenv('APPDATA')
-    else:
-        try:
-            env_home = os.environ['XDG_DATA_HOME']
-        except:
-            env_home = os.environ['HOME'] + "/.local/share"
-        if os.path.isdir(env_home) == False: # ...Documents, then?
-            env_home = os.environ['HOME'] + "/Documents"
-        if os.path.isdir(env_home) == False: # Fine, home directory it is
-            env_home = os.environ['HOME']
-    log_dir = env_home + "/multichat"
-
+    log_dir = settings["savedir"]
     try:
         if os.path.isdir(log_dir) == False: os.mkdir(log_dir)
         os.chdir(log_dir)
@@ -84,7 +135,7 @@ def main():
     user_list = get_users()
     log_file = get_log_file(log_dir)
     # Chat and log to file.
-    chat(user_list, log_dir, log_file)
+    chat(user_list, log_dir, log_file, settings)
     # Close file and finish up.
     log_file.close()
 
@@ -145,18 +196,9 @@ def get_users():
             print("Please enter a username.")
             continue_entry = True
         user_name = input("Enter the name of user " + str(user_number) + " or q to quit: ")
-            
-def get_log_file(log_dir):
-    # Get or create log file.
-    print()
-    print("Enter a name for this chat, or hit enter to")
-    log_file_name = input("select the default (chat): ")
-    # Check for empty input.
-    if log_file_name.isspace() == True or not log_file_name:
-        log_file_name = "chat"
-    # Check for quitting.
-    if log_file_name == "q":
-        raise SystemExit
+
+# Separated into its own function to enable changing log dir in settings
+def open_log(log_dir, log_file_name):
     try:
         log_file_name = log_dir + "/" + log_file_name + ".txt"
         print(log_file_name)
@@ -177,8 +219,22 @@ def get_log_file(log_dir):
     # Stop the loop and return the needed information.
     else:
         return log_file
+            
+def get_log_file(log_dir):
+    # Get or create log file.
+    print()
+    print("Enter a name for this chat, or hit enter to")
+    log_file_name = input("select the default (chat): ")
+    # Check for empty input.
+    if log_file_name.isspace() == True or not log_file_name:
+        log_file_name = "chat"
+    # Check for quitting.
+    if log_file_name == "q":
+        raise SystemExit
+    log_file = open_log(log_dir, log_file_name)
+    return log_file
 
-def chat(user_list, log_dir, log_file):
+def chat(user_list, log_dir, log_file, settings):
     # Read off the existing chat lines.
     chat_message = ""
     # Deal with any goofs
@@ -237,10 +293,14 @@ def chat(user_list, log_dir, log_file):
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         # Set up message preface (used to identify messages)
+        if settings["timestamps"] == True:
+            preface_contents = str(active_user) + ", " + current_time + ": "
+        else:
+            preface_contents = str(active_user) + ": "
         if active_color == "default": # No color set
-            preface = str(active_user) + ", " + current_time + ": "
+            preface = preface_contents
         else: # Color set
-            preface = colored(str(active_user) + ", " + current_time + ": ", active_color)
+            preface = colored(preface_contents, active_color)
         # Get chat message.
         chat_message = input(preface)
 
@@ -361,13 +421,53 @@ def chat(user_list, log_dir, log_file):
             
         # Save users to file
         elif chat_message == "/save":
-            with open("saved-users.pkl", "wb") as savefile:
+            settings_dir = get_settings_dir()
+            with open(settings_dir + "/saved-users.pkl", "wb") as savefile:
                 pickle.dump(user_list, savefile)
             print("Saved users to file.")
 
         # Load users from file
         elif chat_message == "/load":
             user_list = load_users(True)
+
+        # Change settings
+        elif chat_message == "/settings":
+            # Retrieve settings
+            print("Settings:")
+            print(f"1: Change chatlog save location (currently {settings["savedir"]}")
+            print(f"2: Toggle timestamps (currently {settings["timestamps"]})")
+            setnum = input("Enter number of setting to change: ")
+            match setnum:
+                # Changing where chatlogs are saved
+                case "1":
+                    save_dir = input("Enter new chatlog save location (absolute path): ")
+                    if save_dir[-1] in ["/", "\\"]: save_dir = save_dir[:-1]
+                    # DO SAFETY CHECKS
+                    try: # Does it exist?
+                        if os.path.isdir(save_dir) == False: # Nope, fix it
+                            Path(save_dir + "/multichat").mkdir(parents=True, exist_ok=True)
+                    except Exception as ex: # Nope, failed to fix it
+                        print("Could not create save location.")
+                    if os.path.isdir(save_dir) == True: # It exists!
+                        # Can we write to it?
+                        if os.access(save_dir, os.W_OK):
+                            settings["savedir"] = save_dir + "/multichat"
+                            settings_dir = get_settings_dir()
+                            save_settings(settings, settings_dir)
+                            clear()
+                            print(f"Saved. MultiChat's chat logs will now be saved to {settings_dir}.")
+                            print("Old files will not be copied over-")
+                            print("please move these yourself if you'd like to access them.")
+                            print("Restarting to ensure change takes effect.")
+                            chat(user_list, log_dir, log_file, settings)
+                    else:
+                        print(f"Cannot access {save_dir}. Changes not saved.")
+                # Toggle timestamps
+                case "2":
+                    settings["timestamps"] = not settings["timestamps"]
+                    settings_dir = get_settings_dir()
+                    save_settings(settings, settings_dir)
+                    print("Timestamps toggled. Currently:", settings["timestamps"])
 
         # Change the user's prefix color
         elif chat_message.startswith("/color") == True:
@@ -421,7 +521,6 @@ def chat(user_list, log_dir, log_file):
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
             print("/exit: Save and quit MultiChat.")
-            print("/random: Change to a random user.")
             print("/help: View a help message.")
             print("/load: Load saved users from file. Overwrites current user list!") 
             print("/nolog: Do not save the following message.")
@@ -429,6 +528,7 @@ def chat(user_list, log_dir, log_file):
             print("/quit: Save and quit MultiChat.")
             print("/quote: View random quotes you've added.")
             print("/quote <text>: Add text to the quotes list.") 
+            print("/random: Change to a random user.")
             print("/save: Save list of current users to file.") 
             print("/shrug: Send a shrug emote.")
             print("/switch: Same as /users.")
@@ -521,7 +621,23 @@ def chat(user_list, log_dir, log_file):
         
         # Eyes emoji
         elif chat_message.lower() == "eyes":
-            eyes = "👀"
+            eyes = """
+                       wWWWWWWWww.
+                    WWW'''::::::''WWw 
+                wWWW" .,wWWWWWWw..  WWw. 
+      ` `      wWW'   W888888888888W  'WXX.
+       . `.  wWW'   M88888i#####888"8M  'WWX.
+         ` wWWW'   M88888##d###'w8oo88M   WWMX.
+       `  wWWW"   :W88888####*  #88888M;   WWIZ.
+   - -- wWWWW"     W88888####42##88888W     WWWXx
+         "WIZ       W8n889######98888W       WWXx.
+      ' ' 'Wm,       W88888999988888W        >WWR'
+       '   "WMm.      "WW88888888WW"        mmMM'
+             'Wmm.       "WWWWWW"        ,whAT?'
+              ''MMMmm..            _,mMMMM
+                      MMMMMMMMMMMMMM
+
+"""
             print(preface + eyes)
             log_file.write(preface + "Eyes emoji\n")
 
@@ -542,30 +658,23 @@ def chat(user_list, log_dir, log_file):
 
         elif chat_message.lower() == "thumbsupper":
             emote = """
-            ⠀⠀⠀⠀⠀⠀⠀⠀⣠⠖⠋⠉⠛⠛⠲⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠃⠀⠀⠀⠀⠀⠀⠀⠱⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⢡⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡤⠤⠤⠤⠤⠤⣜⡀⠀⠀⠀⠀⠀⠀⠀⠀⢘⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⢀⡤⠚⠉⠀⠀⠀⠀⠀⠀⠀⠀⠉⠓⠦⣄⠀⠀⠀⠀⢠⠞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⢀⡔⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢦⡙⢦⣠⠞⠁⣀⡠⠤⠒⠒⣲⣶⣒⠒⠒⠤⢄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⡴⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠲⣙⢖⠉⢀⣀⠤⢦⡾⠟⠋⠙⠷⠤⢄⣀⠈⠉⠒⢤⡀⠀⠀⠀⠀⠀⠀⠀
-⠀⡼⠁⠀⠀⠀⠀⠀⠀⠀⠤⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣆⠁⠀⠀⠟⠀⠀⠀⠀⠀⠀⠀⠈⠉⠲⢤⣶⣾⣦⣀⠀⠀⠀⠀⠀
-⣸⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠲⢤⡀⠀⠀⠀⠀⠀⠀⠀⢻⡀⠀⠀⠀⣀⠤⠀⠀⠀⠀⠀⠀⠀⠀⠉⠀⠀⣿⣏⠳⡀⠀⠀⠀
-⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠓⢤⡀⠀⠀⠀⠀⠀⡇⠀⢀⡾⠋⠉⠉⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠘⠃⠀⠙⢆⠀⠀
-⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢦⡈⠢⡄⠀⠀⡼⠁⠀⣸⠁⣤⣦⣤⡀⠈⡄⠀⠀⡠⠒⠉⠒⠦⡀⠀⠀⠀⠘⡆⠀
-⡇⠀⠀⠀⠀⠀⠀⠀⢤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢆⠈⢶⠚⠥⠤⣀⡇⢰⣧⣼⣿⣧⠀⡇⠀⢰⢡⡾⣿⣦⡀⠈⢦⠀⠀⠀⠸⡄
-⠸⡄⠀⠀⠀⠀⠀⠀⠀⠀⠉⠓⠢⢄⡀⠀⠀⠀⠀⠀⠀⠀⠁⢸⡆⠀⠀⠀⠉⠚⢿⣏⣿⠇⢀⠇⠀⠸⣾⣶⣾⣿⡇⠀⢸⠀⠀⠀⠀⢣
-⠀⢳⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣍⠢⣄⠀⠀⠀⠀⠀⠀⣸⠥⠖⠲⣤⡀⠀⠀⢫⡀⣠⠞⠀⠀⠀⢹⡿⣦⠿⠁⠀⡸⠀⠀⠀⠀⠘
-⠀⠀⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⡈⢳⡀⠀⠀⣀⠔⠁⠀⠀⠀⠱⡌⠀⠀⠀⠏⠀⠀⠀⠀⠀⠀⠙⢤⡤⠖⠉⠉⠁⠀⠀⠀⠀
-⠀⠀⠀⠈⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠀⡗⠒⠉⠁⠀⠀⠀⠀⠀⠀⣿⣶⢄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠀⢀⣀⣀⠀⠀⠀⠀⢰
-⠀⠀⠀⠀⠀⠀⠙⠲⢄⣀⠀⠀⠀⠀⠀⠀⣔⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⣿⣆⠉⠓⠢⠤⣄⣀⣀⣀⣀⣀⣠⠼⠚⠁⠁⠀⠀⠀⡆
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⢷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣻⣿⣷⣄⡀⠀⠀⠀⢀⣼⡿⠋⠀⠀⠀⠀⠀⠀⢀⡼⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢧⠈⠻⣿⣿⣶⣾⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⡸⠁⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢣⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠳⣄⣀⣩⣿⣿⣿⠏⠀⠀⠀⠀⠀⠀⢀⡼⠁⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠛⠛⠋⠁⠀⠀⠀⠀⠀⢀⡴⠋⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⠢⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⠔⠋⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠒⠤⢄⣀⡀⠀⠀⠀⠀⠀⢀⣀⡤⠴⠒⠉⠀⠀⠀⠀⠀"""
+´´´´´´´´´´´´´´´´´´´´´´¶¶¶¶¶¶¶¶¶
+´´´´´´´´´´´´´´´´´´´´¶¶´´´´´´´´´´¶¶
+´´´´´´¶¶¶¶¶´´´´´´´¶¶´´´´´´´´´´´´´´¶¶
+´´´´´¶´´´´´¶´´´´¶¶´´´´´¶¶´´´´¶¶´´´´´¶¶
+´´´´´¶´´´´´¶´´´¶¶´´´´´´¶¶´´´´¶¶´´´´´´´¶¶
+´´´´´¶´´´´¶´´¶¶´´´´´´´´¶¶´´´´¶¶´´´´´´´´¶¶
+´´´´´´¶´´´¶´´´¶´´´´´´´´´´´´´´´´´´´´´´´´´¶¶
+´´´´¶¶¶¶¶¶¶¶¶¶¶¶´´´´´´´´´´´´´´´´´´´´´´´´¶¶
+´´´¶´´´´´´´´´´´´¶´¶¶´´´´´´´´´´´´´¶¶´´´´´¶¶
+´´¶¶´´´´´´´´´´´´¶´´¶¶´´´´´´´´´´´´¶¶´´´´´¶¶
+´¶¶´´´¶¶¶¶¶¶¶¶¶¶¶´´´´¶¶´´´´´´´´¶¶´´´´´´´¶¶
+´¶´´´´´´´´´´´´´´´¶´´´´´¶¶¶¶¶¶¶´´´´´´´´´¶¶
+´¶¶´´´´´´´´´´´´´´¶´´´´´´´´´´´´´´´´´´´´¶¶
+´´¶´´´¶¶¶¶¶¶¶¶¶¶¶¶´´´´´´´´´´´´´´´´´´´¶¶
+´´¶¶´´´´´´´´´´´¶´´¶¶´´´´´´´´´´´´´´´´¶¶
+´´´¶¶¶¶¶¶¶¶¶¶¶¶´´´´´¶¶´´´´´´´´´´´´¶¶
+´´´´´´´´´´´´´´´´´´´´´´´¶¶¶¶¶¶¶¶¶¶¶"""
             print(preface + emote + "\n")
             log_file.write(preface + emote + "\n") 
 
