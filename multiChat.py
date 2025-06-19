@@ -532,6 +532,7 @@ def chat(user_list, log_dir, log_file, settings):
             print("/quote <text>: Add text to the quotes list.") 
             print("/random: Change to a random user.")
             print("/save: Save list of current users to file.") 
+            print("/settings: Change settings for MultiChat.")
             print("/shrug: Send a shrug emote.")
             print("/switch: Same as /users.")
             print("/users: List users in session.")
