@@ -392,16 +392,45 @@ def chat(user_list, log_dir, log_file):
         
         # Change to random user
         elif chat_message == "/random":
-            if len(user_list) < 3:
-                print("Changing to a random user is useful only if there are more than two users.")
-            else:
-                while True:
-                    # Choose a random number from 1 to user_count.
-                    random_number = str(random.randrange(1, len(user_list) + 1))
-                    # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
-                    if active_user != user_list[random_number]:
-                        active_user = user_list[random_number]
-                        break
+            flavor_options = [
+                        " has been chosen by the gods of randomness",
+                        " was selected by fate",
+                        " was hand-picked by the algorithm",
+                        " has been chosen",
+                        " is the chosen one",
+                        " is at the front of the conga line",
+                        " fulfilled the prophecy",
+                        " won the lottery",
+                        " has RNG's favor",
+                        " came forwards",
+                        " won the game",
+                        " got picked",
+                        ", come on down",
+                        ", get over here",
+                        ", congratulations!!",
+                        " was struck by Zeus",
+                        " spawned in",
+                        " experienced a canon event",
+                        " was enlisted in the skeleton wars",
+                        " came back from the soup store",
+                        " joined the brawl",
+                        " walks into a bar",
+                        ' walks into a bar... and says "ouch"',
+                        " materializes",
+                        ", I choose you",
+                        " was pulled from the gacha",
+                        " joins the game",
+                        ", it's your turn!",
+                        ", it's your time!",
+                        ", time to talk!"
+                    ]
+            random_flavor = random.choice(flavor_options)
+            # Choose a random number from 1 to user_count.
+            random_number = str(random.randrange(1, len(user_list) + 1))
+            # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
+            if active_user != user_list[random_number]:
+                active_user = user_list[random_number]
+            print("Multichat: " + active_user + random_flavor + "!")
 
         # Easter eggs and references
         # Table flipping
@@ -479,9 +508,6 @@ def chat(user_list, log_dir, log_file):
         elif "thumbsup" in chat_message.lower():
             print(preface + "👍")
             log_file.write(preface + "👍" + "\n") 
-
-        elif chat_message.lower() == "/clear":
-            clear()
 
         # Done with easter eggs, back to regular code.
         # If there are no special cases, try to append the

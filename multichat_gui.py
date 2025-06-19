@@ -223,39 +223,39 @@ class MultiChat:
                     self.active_user = random.choice(list(self.users.keys()))
                     # We keep things fun around here
                     flavor_options = [
-                        "has been chosen by the gods of randomness",
-                        "was selected by fate",
-                        "was hand-picked by the algorithm",
-                        "has been chosen",
-                        "is the chosen one",
-                        "is at the front of the conga line",
-                        "fulfilled the prophecy",
-                        "won the lottery",
-                        "has RNG's favor",
-                        "came forwards",
-                        "won the game",
-                        "got picked",
+                        " has been chosen by the gods of randomness",
+                        " was selected by fate",
+                        " was hand-picked by the algorithm",
+                        " has been chosen",
+                        " is the chosen one",
+                        " is at the front of the conga line",
+                        " fulfilled the prophecy",
+                        " won the lottery",
+                        " has RNG's favor",
+                        " came forwards",
+                        " won the game",
+                        " got picked",
                         ", come on down",
                         ", get over here",
                         ", congratulations!!",
-                        "was struck by Zeus",
-                        "spawned in",
-                        "experienced a canon event",
-                        "was enlisted in the skeleton wars",
-                        "came back from the soup store",
-                        "joined the brawl",
-                        "walks into a bar",
-                        'walks into a bar... and says "ouch"',
-                        "materializes",
+                        " was struck by Zeus",
+                        " spawned in",
+                        " experienced a canon event",
+                        " was enlisted in the skeleton wars",
+                        " came back from the soup store",
+                        " joined the brawl",
+                        " walks into a bar",
+                        ' walks into a bar... and says "ouch"',
+                        " materializes",
                         ", I choose you",
-                        "was pulled from the gacha",
-                        "joins the game",
+                        " was pulled from the gacha",
+                        " joins the game",
                         ", it's your turn!",
                         ", it's your time!",
                         ", time to talk!"
                     ]
                     # Used to notify on which user got picked... the fun way!
-                    random_flavor = self.active_user + " " + random.choice(flavor_options) + "!"
+                    random_flavor = self.active_user + random.choice(flavor_options) + "!"
                     self.update_chatlog(random_flavor)
                     self.log_file.write(self.get_preface(False) + random_flavor + "\n")
                     return True
