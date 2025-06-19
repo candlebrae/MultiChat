@@ -191,16 +191,18 @@ def chat(user_list, log_dir, log_file):
     # as no one.
     # Also fix the old /save format to match the new format 
     # (so color can happen!)
-    active_user = next(iter(user_list))
+    active_user = next(iter(user_list.keys()))
     if not isinstance(user_list[active_user], dict):
-        username = active_user
+        username = user_list[active_user]
         user_list[active_user] = {"username": str(username), "color": "default"}
         #print(user_list[active_user])
         active_user = username
         active_color = "default"
     else:
-        active_user = str(user_list[active_user]["username"])
-        active_color = str(user_list[active_user]["color"])
+        user_info = user_list[active_user]
+        print(user_info)
+        active_user = str(user_info["username"])
+        active_color = str(user_info["color"])
 
     # Add a date marker to the top of the log file
     # (or if appending to an existing file, to the end of it).
