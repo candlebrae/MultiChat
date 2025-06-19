@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Used to display date and time for messages.
-from datetime import date
-from datetime import datetime
+from datetime import date, datetime
 # Used to set home directory for chat logs.
 import platform
 # Used to make sure chat directory exists.
@@ -16,6 +15,7 @@ import random
 # Used to save/load users
 import pickle
 # Colored names!
+# TODO: pip dependency. Check if installed. If not, warn user.
 from termcolor import colored;
 
 # Add a new user, updating both the user list and count (used to more easily
@@ -36,8 +36,8 @@ def add_user(user, user_list):
 # Load existing users
 def load_users(output: bool):
     if os.path.isfile("saved-users.pkl") == False: 
-        print("No users to load. Save current users by sending /save\nwhile in chat.")
-        return {}, 0
+        print("No saved users found. Save current users by sending /save\nwhile in chat.")
+        return {}
     else:
         with open("saved-users.pkl", "rb") as savefile:
             user_list = pickle.load(savefile)
@@ -119,23 +119,25 @@ def get_users():
         # We're done here- chat time
         elif user_name =="n" and user_number > 1:
             user_number -= 1
-            return user_list, user_number
+            return user_list
         # Fast bypass if users already are saved to file- else, complain
         if user_name == "":
             user_name = "/load"
         # Load existing users if they exist
-        if user_name == "/load":
+        if user_name == "/load" and user_list == {}:
             user_list = load_users(False)
-            if user_list:
+            if user_list != {}:
                 user_number = len(user_list)
                 continue_entry = False
                 return user_list
-            else:
-                print("No saved users found.")
+        elif user_name == "/load":
+            overwrite = input("Warning: loading saved users will overwrite current user list. Continue? y/n: ")
+            if overwrite.lower == "y" or overwrite.lower == "yes":
+                user_list = load_users(False)
         # We have a username!
         elif user_name:
             # Add user.
-            user_list.update({str(user_number): str(user_name)})
+            user_list[str(user_number)] = {"username": str(user_name), "color": "default"}
             user_number += 1
             print("If you're done, enter n to stop adding users.")
         # Bogus inputs
@@ -179,17 +181,28 @@ def get_log_file(log_dir):
 def chat(user_list, log_dir, log_file):
     # Read off the existing chat lines.
     chat_message = ""
+    # Deal with any goofs
+    if isinstance(user_list, tuple): # If I missed any old user_counter passes
+        user_list = user_list[0]
+    while user_list == {}:
+        user_list = get_users()
     # Set first active user to be user 1, as this is the
     # most expected behavior and prevents sending messages
     # as no one.
     # Also fix the old /save format to match the new format 
     # (so color can happen!)
-    active_user = next(iter(user_list))
+    active_user = next(iter(user_list.keys()))
     if not isinstance(user_list[active_user], dict):
-        user_list[active_user] = {"username": str(user_list[active_user]), "color": "default"}
-        print(user_list[active_user])
-    active_user = str(user_list[active_user]["username"])
-    active_color = str(user_list[active_user]["color"])
+        username = user_list[active_user]
+        user_list[active_user] = {"username": str(username), "color": "default"}
+        #print(user_list[active_user])
+        active_user = username
+        active_color = "default"
+    else:
+        user_info = user_list[active_user]
+        print(user_info)
+        active_user = str(user_info["username"])
+        active_color = str(user_info["color"])
 
     # Add a date marker to the top of the log file
     # (or if appending to an existing file, to the end of it).
