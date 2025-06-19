@@ -15,6 +15,8 @@ except:
 import random
 # Used to save/load users
 import pickle
+# Colored names!
+from termcolor import colored;
 
 # Add a new user, updating both the user list and count (used to more easily
 # iterate users- yes, len() would be better. This is old code. I'll fix it 
@@ -42,13 +44,17 @@ def load_users(output: bool):
             print("Loaded users from file.")
             if output == True:
                 for user in user_list.keys():
-                    print("Type " + str(user) + " to send messages as " + str(user_list[user]))
+                    print("Type " + str(user) + " to send messages as " + str(user_list[user]["username"]))
     return user_list
 
 # List out all users in list- output for the user to figure out who's there
 def list_users(user_list):
-    for user in user_list:
-        print("Type " + str(user) + " to send messages as " + user_list[user])
+    for user in user_list.keys():
+        # Fix old data format
+        if not isinstance(user_list[user], dict):
+            user_list[user] = {"username": str(user_list[user]), "color": "default"}
+        # Information for the user :D
+        print("Type " + str(user) + " to send messages as " + user_list[user]["username"])
 
 # Set up main function
 def main():
@@ -176,7 +182,14 @@ def chat(user_list, log_dir, log_file):
     # Set first active user to be user 1, as this is the
     # most expected behavior and prevents sending messages
     # as no one.
+    # Also fix the old /save format to match the new format 
+    # (so color can happen!)
     active_user = next(iter(user_list))
+    if not isinstance(user_list[active_user], dict):
+        user_list[active_user] = {"username": str(user_list[active_user]), "color": "default"}
+        print(user_list[active_user])
+    active_user = str(user_list[active_user]["username"])
+    active_color = str(user_list[active_user]["color"])
 
     # Add a date marker to the top of the log file
     # (or if appending to an existing file, to the end of it).
@@ -211,28 +224,37 @@ def chat(user_list, log_dir, log_file):
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         # Set up message preface (used to identify messages)
-        preface = str(active_user) + ", " + current_time + ": "
+        if active_color == "default": # No color set
+            preface = str(active_user) + ", " + current_time + ": "
+        else: # Color set
+            preface = colored(str(active_user) + ", " + current_time + ": ", active_color)
         # Get chat message.
         chat_message = input(preface)
 
         # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
-        try:
+        try: # Try switching to the user indicated by the number.
             if chat_message in user_list.keys():
-                active_user = user_list[chat_message]
+                # Working with old format- if user is not a nested dict
+                # (color storage and username storage), fix the format
+                # and carry on
+                if not isinstance(user_list[chat_message], dict):
+                    user_list[chat_message] = {"username": user_list[chat_message], "color": "default"}
+            
+                active_user = user_list[chat_message]["username"]
+                active_color = user_list[chat_message]["color"]
                 log_file.write("\n")
                 print()
             else:
                 chat_message = chat_message
-            #chat_message = int(chat_message)
         except:
             chat_message = chat_message
         else:
-            # Try switching to the user indicated by the number.
             # If it doesn't work, tell the user it's not working.
             # Then make sure that chat_message is a string so as
             # not to mess up other checks.
             chat_message = str(chat_message)
+
         # If we're quitting, add space in the text file, and notify user.
         if chat_message == "/quit" or chat_message == "/exit":
             clear()
@@ -334,12 +356,38 @@ def chat(user_list, log_dir, log_file):
         elif chat_message == "/load":
             user_list = load_users(True)
 
+        # Change the user's prefix color
+        elif chat_message.startswith("/color") == True:
+            color = chat_message.removeprefix("/color ")
+            color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
+            if color == "/color":
+                print("\nTo set a color for the current user, run: /color (color name)")
+                print("For example: /color red")
+                color = "nonsense"
+            if color in color_list and color != "default":
+                # Get key for current user. I'm sorry
+                reverse_user_lookup = {}
+                for user in user_list:
+                    reverse_user_lookup[user_list[user]["username"]] = user
+                tag = reverse_user_lookup[active_user]
+                # Set new color for current user
+                user_list[tag]["color"] = color
+                active_color = color
+            else:
+                color_samples = "\ndefault"
+                for color in color_list:
+                    color_samples += ", \n" + colored(color, color)
+                print("Please enter a valid color from the following:", color_samples, "\n")
+
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
             tag = chat_message.removeprefix("/proxy ")
             if len(tag) > 0 and len(chat_message) > 6 and "/proxy" not in tag:
                 if tag not in ["/add", "/clear", "/commands", "/dice", "/exit", "/quit", "/random", "/help", "/load", "/save", "/nolog", "/quote", "/shrug", "/switch", "/users"]:
-                    reverse_user_lookup = res = dict((v,k) for k,v in user_list.items())
+                    # Get key for current user. I'm sorry
+                    reverse_user_lookup = {}
+                    for user in user_list:
+                        reverse_user_lookup[user_list[user]["username"]] = user
                     old_tag = reverse_user_lookup[active_user]
                     user_list[tag] = active_user
                     del user_list[old_tag]
@@ -422,14 +470,16 @@ def chat(user_list, log_dir, log_file):
                         " joins the game",
                         ", it's your turn!",
                         ", it's your time!",
-                        ", time to talk!"
+                        ", time to talk!",
+                        " has a mouth- they can finally scream",
+                        " gets the talking stick"
                     ]
             random_flavor = random.choice(flavor_options)
             # Choose a random number from 1 to user_count.
             random_number = str(random.randrange(1, len(user_list) + 1))
             # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
             if active_user != user_list[random_number]:
-                active_user = user_list[random_number]
+                active_user = user_list[random_number]["username"]
             print("Multichat: " + active_user + random_flavor + "!")
 
         # Easter eggs and references
@@ -471,7 +521,7 @@ def chat(user_list, log_dir, log_file):
         elif "/nolog" in chat_message:
             print("/nolog: The following message will not be logged.")
             # Set up message preface (used to identify messages)
-            preface = active_user + ", " + current_time + ": "
+            preface = colored(active_user + ", " + current_time + ": ", "dark_grey")
             # Get chat message.
             chat_message = input(preface)
             print("/nolog: Back to logging messages.")
