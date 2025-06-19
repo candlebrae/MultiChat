@@ -404,6 +404,7 @@ def chat(user_list, log_dir, log_file):
             print("Commands:")
             print("/add <username>: Add new user.")
             print("/clear: Clear the screen.")
+            print("/color <color name>: Set a prefix color for this user.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
             print("/exit: Save and quit MultiChat.")
