@@ -436,7 +436,7 @@ def chat(user_list, log_dir, log_file, settings):
             print("Settings:")
             loc = settings["savedir"]
             timestat = settings["timestamps"]
-            print(f"1: Change chatlog save location (currently {loc}")
+            print(f"1: Change chatlog save location (currently {loc})")
             print(f"2: Toggle timestamps (currently {timestat})")
             setnum = input("Enter number of setting to change: ")
             match setnum:
