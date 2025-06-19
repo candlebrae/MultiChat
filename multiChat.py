@@ -182,24 +182,27 @@ def get_log_file(log_dir):
 def chat(user_list, log_dir, log_file):
     # Read off the existing chat lines.
     chat_message = ""
-    # Set first active user to be user 1, as this is the
-    # most expected behavior and prevents sending messages
-    # as no one.
-    # Also fix the old /save format to match the new format 
-    # (so color can happen!)
     # Deal with any goofs
     if isinstance(user_list, tuple): # If I missed any old user_counter passes
         user_list = user_list[0]
     while user_list == {}:
         user_list = get_users()
-    print(user_list)
+    # Set first active user to be user 1, as this is the
+    # most expected behavior and prevents sending messages
+    # as no one.
+    # Also fix the old /save format to match the new format 
+    # (so color can happen!)
     active_user = next(iter(user_list))
+    print(active_user)
     if not isinstance(user_list[active_user], dict):
-        user_list[active_user] = {"username": str(user_list[active_user]), "color": "default"}
+        username = active_user
+        user_list[active_user] = {"username": str(username), "color": "default"}
         #print(user_list[active_user])
-        print(user_list)
-    active_user = str(user_list[active_user]["username"])
-    active_color = str(user_list[active_user]["color"])
+        active_user = username
+        active_color = "default"
+    else:
+        active_user = str(user_list[active_user]["username"])
+        active_color = str(user_list[active_user]["color"])
 
     # Add a date marker to the top of the log file
     # (or if appending to an existing file, to the end of it).
