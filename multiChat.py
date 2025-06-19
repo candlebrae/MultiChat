@@ -82,7 +82,6 @@ def main():
 
     # Get user names and the file to log to.
     user_list = get_users()
-    print(user_list)
     log_file = get_log_file(log_dir)
     # Chat and log to file.
     chat(user_list, log_dir, log_file)
@@ -193,7 +192,6 @@ def chat(user_list, log_dir, log_file):
     # Also fix the old /save format to match the new format 
     # (so color can happen!)
     active_user = next(iter(user_list))
-    print(active_user)
     if not isinstance(user_list[active_user], dict):
         username = active_user
         user_list[active_user] = {"username": str(username), "color": "default"}
