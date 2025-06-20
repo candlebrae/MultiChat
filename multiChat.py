@@ -133,9 +133,9 @@ def main():
 
     # Get user names and the file to log to.
     user_list = get_users()
-    log_file = get_log_file(log_dir)
+    log_file, log_file_name = get_log_file(log_dir)
     # Chat and log to file.
-    chat(user_list, log_dir, log_file, settings)
+    chat(user_list, log_dir, log_file, log_file_name, settings)
     # Close file and finish up.
     log_file.close()
 
@@ -232,9 +232,9 @@ def get_log_file(log_dir):
     if log_file_name == "q":
         raise SystemExit
     log_file = open_log(log_dir, log_file_name)
-    return log_file
+    return log_file, log_file_name
 
-def chat(user_list, log_dir, log_file, settings):
+def chat(user_list, log_dir, log_file, log_file_name, settings):
     # Read off the existing chat lines.
     chat_message = ""
     # Deal with any goofs
@@ -316,7 +316,7 @@ def chat(user_list, log_dir, log_file, settings):
             
                 active_user = user_list[chat_message]["username"]
                 active_color = user_list[chat_message]["color"]
-                log_file.write("\n")
+                #log_file.write("\n")
                 print()
             else:
                 chat_message = chat_message
@@ -338,6 +338,7 @@ def chat(user_list, log_dir, log_file, settings):
                 print("Error adding text separator to end of file.")
                 print("Your log should still be okay, but any later")
                 print("additions will not be separated by a line.")
+            raise SystemExit
         
         # Help message
         elif chat_message == "/help":
@@ -442,6 +443,8 @@ def chat(user_list, log_dir, log_file, settings):
             match setnum:
                 # Changing where chatlogs are saved
                 case "1":
+                    print("Old files will not be copied over-")
+                    print("please move these yourself if you'd like to access them.")
                     save_dir = input("Enter new chatlog save location (absolute path): ")
                     if save_dir[-1] in ["/", "\\"]: save_dir = save_dir[:-1]
                     # DO SAFETY CHECKS
@@ -458,10 +461,10 @@ def chat(user_list, log_dir, log_file, settings):
                             save_settings(settings, settings_dir)
                             clear()
                             print(f"Saved. MultiChat's chat logs will now be saved to {settings_dir}.")
-                            print("Old files will not be copied over-")
-                            print("please move these yourself if you'd like to access them.")
-                            print("Restarting to ensure change takes effect.")
-                            chat(user_list, log_dir, log_file, settings)
+                            log_file.write("\n\n")
+                            log_file.close() # Kill the old file, on to the new!
+                            log_file = open_log(save_dir, log_file_name)
+                            chat(user_list, save_dir, log_file, log_file_name, settings)
                     else:
                         print(f"Cannot access {save_dir}. Changes not saved.")
                 # Toggle timestamps
@@ -704,5 +707,4 @@ try:
     main()
 except KeyboardInterrupt:
     clear()
-    log_file.write("\n\n")
     print("Quitting.")
