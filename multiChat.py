@@ -33,7 +33,7 @@ def get_settings_dir():
             if os.path.isdir(basepath) == False: # Fine, home directory it is
                 basepath = os.environ['HOME']
     settingpath = basepath + "/multichat"
-    if os.path.isdir(settingpath) == False: os.mkdir(settingpath)
+    if os.path.isdir(settingpath) == False: Path(settingpath).mkdir(parents=True, exist_ok=True)
     return settingpath
 
 # Make the default settings
@@ -57,7 +57,7 @@ def retrieve_settings():
 
 # Save user settings to file
 def save_settings(settings, settings_dir):
-    if os.path.isdir(settings_dir) == False: os.mkdir(settings)
+    if os.path.isdir(settings_dir) == False: Path(settings).mkdir(parents=True, exist_ok=True)
     with open (settings_dir + "/settings.pkl", "wb") as settingfile:
         pickle.dump(settings, settingfile)
     return True
@@ -124,7 +124,7 @@ def main():
     # Set up a log directory
     log_dir = settings["savedir"]
     try:
-        if os.path.isdir(log_dir) == False: os.mkdir(log_dir)
+        if os.path.isdir(log_dir) == False: Path(log_dir).mkdir(parents=True, exist_ok=True)
         os.chdir(log_dir)
     except Exception as error:
         print("Error creating or accessing chatlogs folder.")
