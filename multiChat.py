@@ -251,7 +251,6 @@ def chat(user_list, log_dir, log_file, settings):
     if not isinstance(user_list[active_user], dict):
         username = user_list[active_user]
         user_list[active_user] = {"username": str(username), "color": "default"}
-        #print(user_list[active_user])
         active_user = username
         active_color = "default"
     else:
@@ -317,7 +316,7 @@ def chat(user_list, log_dir, log_file, settings):
                 active_user = user_list[chat_message]["username"]
                 active_color = user_list[chat_message]["color"]
                 log_file.write("\n")
-                print()
+                #print()
             else:
                 chat_message = chat_message
         except:
