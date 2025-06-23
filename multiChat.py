@@ -574,7 +574,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 # Set new color for current user
                 user_list[tag]["color"] = color
                 active_color = color
-            else: # Invalid choice
+            elif color != "help": # Invalid choice
                 color_samples = "\ndefault"
                 for color in color_list:
                     color_samples += ", \n" + colored(color, color)
@@ -594,8 +594,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print('    /proxy Will: Sets switch text for current user to "Will".')
                 print('    /proxy sudo: Sets switch text for current user to "sudo".')
                 print("-------------")
-            elif len(tag) > 0 and len(chat_message) > 6 and "/proxy" not in tag:
-                if tag not in ["/add", "/clear", "/commands", "/dice", "/exit", "/quit", "/random", "/help", "/load", "/save", "/nolog", "/quote", "/shrug", "/switch", "/users"]:
+            elif len(tag) > 0 and len(chat_message) > 6:
+                if not tag.startswith("/"):
                     # Get key for current user. I'm sorry
                     reverse_user_lookup = {}
                     for user in user_list:
@@ -606,7 +606,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                     print(active_user + "'s proxy changed to " + tag)
                     list_users(user_list)
                 else:
-                    print("Commands cannot be proxies.")
+                    print("Proxies cannot start with / (sorry!).")
             else:
                 print("Please supply a new tag: /proxy <tag>")
 
@@ -619,7 +619,6 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/color <color name>: Set a prefix color for this user.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
-            print("/exit: Save and quit MultiChat.")
             print("/help: View a help message.")
             print("/load: Load saved users from file. Overwrites current user list!") 
             print("/nolog: Do not save the next message.")
@@ -632,7 +631,6 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/save: Save list of current users to file.") 
             print("/settings: Change settings for MultiChat.")
             print("/shrug: Send a shrug emote.")
-            print("/switch: Same as /users.")
             print("/users: List users in session.")
             print()
 
