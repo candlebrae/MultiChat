@@ -251,7 +251,6 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
     if not isinstance(user_list[active_user], dict):
         username = user_list[active_user]
         user_list[active_user] = {"username": str(username), "color": "default"}
-        #print(user_list[active_user])
         active_user = username
         active_color = "default"
     else:
@@ -318,7 +317,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 active_user = user_list[chat_message]["username"]
                 active_color = user_list[chat_message]["color"]
                 #log_file.write("\n")
-                print()
+                #print()
             else:
                 chat_message = chat_message
         except:
@@ -508,7 +507,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("Settings:")
             loc = settings["savedir"]
             timestat = settings["timestamps"]
-            print(f"1: Change chatlog save location (currently {loc})")
+            print(f"1: Change chatlog save location (currently {loc}")
             print(f"2: Toggle timestamps (currently {timestat})")
             setnum = input("Enter number of setting to change: ")
             match setnum:
@@ -620,6 +619,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/color <color name>: Set a prefix color for this user.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
+            print("/exit: Save and quit MultiChat.")
             print("/help: View a help message.")
             print("/load: Load saved users from file. Overwrites current user list!") 
             print("/nolog: Do not save the next message.")
@@ -632,6 +632,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/save: Save list of current users to file.") 
             print("/settings: Change settings for MultiChat.")
             print("/shrug: Send a shrug emote.")
+            print("/switch: Same as /users.")
             print("/users: List users in session.")
             print()
 
@@ -820,4 +821,5 @@ try:
     main()
 except KeyboardInterrupt:
     clear()
+    log_file.write("\n\n")
     print("Quitting.")
