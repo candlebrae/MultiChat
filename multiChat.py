@@ -474,8 +474,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("MultiChat: Did you mean /quote?")
             
         # Save users to file
-        elif chat_message == "/save":
-            if chat_message.removeprefix("/save ") == "help":
+        elif chat_message.startswith("/save"):
+            if chat_message.endswith("help"):
                 print("-------------")
                 print("/save: Save the names, colors, and proxies of current users.")
                 print("This allows these users to be loaded in a different chat with /load.")
@@ -489,8 +489,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("Saved users to file.")
 
         # Load users from file
-        elif chat_message == "/load":
-            if chat_message.removeprefix("/load ") == "help":
+        elif chat_message.startswith("/load"):
+            if chat_message.endswith("help"):
                 print("-------------")
                 print("/load: Retrieve saved user names, colors, and proxies.")
                 print("Warning: old user list will be overwritten!")
@@ -555,6 +555,9 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("For example: /color red")
                 color = "nonsense"
             if color == "help":
+                color_samples = "\ndefault"
+                for color in color_list:
+                    color_samples += ", \n" + colored(color, color)
                 print("-------------")
                 print("/color <colorname>: set the color of the current user's name/timestamp.")
                 print("<color> may be any standard ANSII terminal color name.")
