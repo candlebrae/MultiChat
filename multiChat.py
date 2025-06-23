@@ -548,16 +548,20 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         elif chat_message.startswith("/color") == True:
             color = chat_message.removeprefix("/color ")
             # Valid colors
-            color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
+            color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
+            # Set up sample color display, accounting for availability differences
+            color_samples = "\ndefault"
+            for color in color_list:
+                try: # Every color colored with itself
+                    color_samples += ", \n" + colored(colora, colora)
+                except:
+                    color_list = color_list.remove(color)
             # Help texts
             if color == "/color":
                 print("\nTo set a color for the current user, run: /color (color name)")
                 print("For example: /color red")
                 color = "nonsense"
             if color == "help":
-                color_samples = "\ndefault"
-                for colora in color_list: # Color each color with itself
-                    color_samples += ", \n" + colored(colora, colora)
                 print("-------------")
                 print("/color <colorname>: set the color of the current user's name/timestamp.")
                 print("<color> may be any standard ANSII terminal color name.")
@@ -578,9 +582,6 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 user_list[tag]["color"] = color
                 active_color = color
             elif color != "help": # Invalid choice
-                color_samples = "\ndefault"
-                for color in color_list:
-                    color_samples += ", \n" + colored(color, color)
                 print("Please enter a valid color from the following:", color_samples, "\n")
 
         # Load users from file
