@@ -551,11 +551,11 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
             # Set up sample color display, accounting for availability differences
             color_samples = "\ndefault"
-            for color in color_list:
+            for color_option in color_list:
                 try: # Every color colored with itself
-                    color_samples += ", \n" + colored(colora, colora)
+                    color_samples += ", \n" + colored(color_option, color_option)
                 except:
-                    color_list = color_list.remove(color)
+                    pass # Color not available on this system
             # Help texts
             if color == "/color":
                 print("\nTo set a color for the current user, run: /color (color name)")
