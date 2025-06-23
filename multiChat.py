@@ -479,8 +479,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("-------------")
                 print("/save: Save the names, colors, and proxies of current users.")
                 print("This allows these users to be loaded in a different chat with /load.")
-                print("Saved users can be found in %APPDATA\multichat\saved-users.pkl (Windows)")
-                print("or ~/.config/multichat/saved-users.pkl (Linux, MacOS).")
+                print("Saved users can be found in \n    %APPDATA\multichat\saved-users.pkl (Windows)")
+                print("    ~/.config/multichat/saved-users.pkl (Linux, MacOS).")
                 print("-------------")
             else:
                 settings_dir = get_settings_dir()
@@ -495,8 +495,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("/load: Retrieve saved user names, colors, and proxies.")
                 print("Warning: old user list will be overwritten!")
                 print("/save must have been used previously to create the file that /load looks for:")
-                print("%APPDATA\multichat\saved-users.pkl (Windows)")
-                print("~/.config/multichat/saved-users.pkl (Linux, MacOS)")
+                print("    %APPDATA\multichat\saved-users.pkl (Windows)")
+                print("    ~/.config/multichat/saved-users.pkl (Linux, MacOS)")
                 print("-------------")
             else:
                 user_list = load_users(True)
@@ -556,8 +556,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 color = "nonsense"
             if color == "help":
                 color_samples = "\ndefault"
-                for color in color_list:
-                    color_samples += ", \n" + colored(color, color)
+                for colora in color_list: # Color each color with itself
+                    color_samples += ", \n" + colored(colora, colora)
                 print("-------------")
                 print("/color <colorname>: set the color of the current user's name/timestamp.")
                 print("<color> may be any standard ANSII terminal color name.")
