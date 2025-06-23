@@ -16,9 +16,9 @@ IMPORTANT: Do NOT post this list to the issue-tracker. Use it as a basis for
 
 missing module named _frozen_importlib_external - imported by importlib._bootstrap (delayed), importlib (optional), importlib.abc (optional)
 excluded module named _frozen_importlib - imported by importlib (optional), importlib.abc (optional)
-missing module named 'collections.abc' - imported by logging (top-level), inspect (top-level), typing (top-level), importlib.resources.readers (top-level), selectors (top-level), tracemalloc (top-level), traceback (top-level), termcolor.termcolor (top-level)
+missing module named 'collections.abc' - imported by tracemalloc (top-level), traceback (top-level), typing (top-level), inspect (top-level), logging (top-level), importlib.resources.readers (top-level), selectors (top-level), termcolor.termcolor (top-level)
 missing module named winreg - imported by importlib._bootstrap_external (conditional), platform (delayed, optional)
-missing module named nt - imported by shutil (conditional), importlib._bootstrap_external (conditional), ntpath (optional), os (delayed, conditional, optional), _colorize (delayed, conditional, optional), ctypes (delayed, conditional)
+missing module named nt - imported by shutil (conditional), importlib._bootstrap_external (conditional), ntpath (optional), _colorize (delayed, conditional, optional), os (delayed, conditional, optional), ctypes (delayed, conditional)
 missing module named _winapi - imported by encodings (delayed, conditional, optional), shutil (conditional), ntpath (optional), subprocess (conditional)
 missing module named msvcrt - imported by subprocess (optional)
 missing module named vms_lib - imported by platform (delayed, optional)

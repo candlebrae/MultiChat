@@ -284,7 +284,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
     print("Or type /quit to quit (case sensitive).")
     print()
     print("Type /help to view a help message,")
-    print("and /users to see a list of all users.")
+    print("/commands to view a list of commands,")
+    print("or /users to see a list of all users.")
     print()
 
     # Check for special inputs and handle accordingly
@@ -356,7 +357,45 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             user_list = add_user(new_user, user_list)
         elif chat_message.startswith("/add ") == True:
             new_user = chat_message.removeprefix("/add ")
-            user_list = add_user(new_user, user_list)
+            if new_user == "help":
+                print("-------------")
+                print("/add: Add a new user to the list. Will prompt for username.")
+                print("Alternatively, /add <user> will add <user> to the list.")
+                print("A default proxy will be assigned based on the number of users.")
+                print("Examples:")
+                print("    /add Alice: Add a user named Alice.")
+                print("    /add Bob: Add a user named Bob.")
+                print("    /add Eve: Add a user named Eve.")
+                print("-------------")
+            else:
+                user_list = add_user(new_user, user_list)
+
+        # Remove users from the list
+        elif chat_message.startswith("/remove"):
+            del_user = chat_message.removeprefix("/remove ")
+            # Help message
+            if del_user == "help":
+                print("-------------")
+                print("/remove <proxy>: delete the user with proxy <proxy>.")
+                print("Past messages sent as this user will still be under their name, but they will be removed \nfrom the user list and you will not be able to send messages as them.")
+                print("You will be asked to confirm deletion by typing their full name.")
+                print("If you're not sure what a user's <proxy> is, see /users")
+                print("-------------")
+            # Delete the user, if they exist
+            elif del_user in user_list:
+                username = del_user["username"]
+                print(f"Are you sure you'd like to delete {username}?")
+                confirm = input(f"Type their name to confirm (case-sensitive): ").lower()
+                if confirm == username:
+                    user_list[del_user]
+                    print(f"{username} deleted.")
+                    list_users(user_list)
+                else:
+                    print("Name does not match. Did you make a typo?")
+            # Oops, no user!
+            else:
+                print(f"Cannot find user with proxy {del_user}. Did you typo?")
+
 
         # Clear the screen
         elif chat_message == "/clear":
@@ -370,11 +409,26 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # Quote saving and retrieval
         elif chat_message.startswith("/quote") == True:
             quote_path = log_dir + "/quotes.txt"
-            if chat_message == "/quote":
+            if chat_message == "/quote help":
+                print("-------------")
+                print("/quote: save chat messages or read a random saved message.")
+                print("/quote <message> will store <message> as a quote that can be retrieved later.")
+                print("This quote will be attributed to the current user and the current time.")
+                print("/quote on its own will retrieve a random saved quote, if any exist.")
+                print("-------------")
+            elif chat_message == "/quote":
                 # Read from quote file
                 try:
                     quote_file = open(quote_path, "r")
-                except:
+                except: # Quotes broke, sorry. Start over.
+                    # Save the broken one, if it exists
+                    try:
+                        from shutil import copyfile
+                        shutil.copy(quote_path, quote_path + ".bak")
+                        print("Error: quotes file missing or corrupt. \nSaving old file as backup, creating new file.")
+                    except: # Can't save backup- file probably doesn't exist yet
+                        pass # we'll just replace it.
+                    # Make a new quotes file
                     quote_file = open(quote_path, "w")
                     quote_file.close()
                     quote_file = open(quote_path, "r")
@@ -393,7 +447,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                     chat_message = "MultiChat: " + random_quote
                     log_file.write(chat_message)
                 except:
-                    print("Unable to access quotes, do any exist?")
+                    print("Unable to access quotes; did you save any?")
                 # Close the file
                 quote_file.close()
             elif "/quotes" in chat_message:
@@ -422,14 +476,31 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             
         # Save users to file
         elif chat_message == "/save":
-            settings_dir = get_settings_dir()
-            with open(settings_dir + "/saved-users.pkl", "wb") as savefile:
-                pickle.dump(user_list, savefile)
-            print("Saved users to file.")
+            if chat_message.removeprefix("/save ") == "help":
+                print("-------------")
+                print("/save: Save the names, colors, and proxies of current users.")
+                print("This allows these users to be loaded in a different chat with /load.")
+                print("Saved users can be found in %APPDATA\multichat\saved-users.pkl (Windows)")
+                print("or ~/.config/multichat/saved-users.pkl (Linux, MacOS).")
+                print("-------------")
+            else:
+                settings_dir = get_settings_dir()
+                with open(settings_dir + "/saved-users.pkl", "wb") as savefile:
+                    pickle.dump(user_list, savefile)
+                print("Saved users to file.")
 
         # Load users from file
         elif chat_message == "/load":
-            user_list = load_users(True)
+            if chat_message.removeprefix("/load ") == "help":
+                print("-------------")
+                print("/load: Retrieve saved user names, colors, and proxies.")
+                print("Warning: old user list will be overwritten!")
+                print("/save must have been used previously to create the file that /load looks for:")
+                print("%APPDATA\multichat\saved-users.pkl (Windows)")
+                print("~/.config/multichat/saved-users.pkl (Linux, MacOS)")
+                print("-------------")
+            else:
+                user_list = load_users(True)
 
         # Change settings
         elif chat_message == "/settings":
@@ -477,13 +548,26 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # Change the user's prefix color
         elif chat_message.startswith("/color") == True:
             color = chat_message.removeprefix("/color ")
+            # Valid colors
             color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
+            # Help texts
             if color == "/color":
                 print("\nTo set a color for the current user, run: /color (color name)")
                 print("For example: /color red")
                 color = "nonsense"
+            if color == "help":
+                print("-------------")
+                print("/color <colorname>: set the color of the current user's name/timestamp.")
+                print("<color> may be any standard ANSII terminal color name.")
+                print("The following colors are allowed:")
+                print(color_samples)
+                print("Examples:")
+                print("    /color red: set the current user's color to red.")
+                print("    /color default: set the current user's color to the default text color.")
+                print("-------------")
+            # If we have a valid color
             if color in color_list and color != "default":
-                # Get key for current user. I'm sorry
+                # Get key for current user. I'm sorry. This is overkill.
                 reverse_user_lookup = {}
                 for user in user_list:
                     reverse_user_lookup[user_list[user]["username"]] = user
@@ -491,7 +575,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 # Set new color for current user
                 user_list[tag]["color"] = color
                 active_color = color
-            else:
+            else: # Invalid choice
                 color_samples = "\ndefault"
                 for color in color_list:
                     color_samples += ", \n" + colored(color, color)
@@ -500,7 +584,18 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
             tag = chat_message.removeprefix("/proxy ")
-            if len(tag) > 0 and len(chat_message) > 6 and "/proxy" not in tag:
+            if tag == "help":
+                print("-------------")
+                print("/proxy <tag>: Change the current user's proxy to <tag>.")
+                print("This allows you to set the text used to switch to the current user.")
+                print("If a message exactly matches a user's proxy text, then the next message is set \nas coming from their user. Matching is case-sensitive!")
+                print("It's a good idea to choose proxies that you don't tend to type in \nnormal conversation.")
+                print("Examples: ")
+                print('    /proxy w>: Sets switch text for current user to "w>".')
+                print('    /proxy Will: Sets switch text for current user to "Will".')
+                print('    /proxy sudo: Sets switch text for current user to "sudo".')
+                print("-------------")
+            elif len(tag) > 0 and len(chat_message) > 6 and "/proxy" not in tag:
                 if tag not in ["/add", "/clear", "/commands", "/dice", "/exit", "/quit", "/random", "/help", "/load", "/save", "/nolog", "/quote", "/shrug", "/switch", "/users"]:
                     # Get key for current user. I'm sorry
                     reverse_user_lookup = {}
@@ -525,27 +620,36 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/color <color name>: Set a prefix color for this user.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
-            print("/exit: Save and quit MultiChat.")
             print("/help: View a help message.")
             print("/load: Load saved users from file. Overwrites current user list!") 
-            print("/nolog: Do not save the following message.")
-            print("/proxy <tag>: Change the current user's proxy to <tag>.")
+            print("/nolog: Do not save the next message.")
+            print("/proxy <text>: Change the current user's switch text to <text>.")
             print("/quit: Save and quit MultiChat.")
             print("/quote: View random quotes you've added.")
             print("/quote <text>: Add text to the quotes list.") 
             print("/random: Change to a random user.")
+            print("/remove: Delete a user.")
             print("/save: Save list of current users to file.") 
             print("/settings: Change settings for MultiChat.")
             print("/shrug: Send a shrug emote.")
-            print("/switch: Same as /users.")
             print("/users: List users in session.")
             print()
 
         # Dice rolling
         elif chat_message == "/dice":
             print("MultiChat: /dice syntax: /dice <number>")
+            print("MultiChat: For more information, see /dice help")
         elif chat_message.startswith("/dice ") == True:
             dice_sides = chat_message.removeprefix("/dice ")
+            if dice_sides == "help":
+                print("-------------")
+                print("/dice <number>: roll a die with a set number of sides and shows the results.")
+                print("<number> may be any integer greater than zero.")
+                print("Examples:")
+                print("    /dice 6: rolls a 6-sided die.")
+                print("    /dice 20: rolls a 20-sided die.")
+                print("    /dice 8675309: rolls a 8,675,309-sided die.")
+                print("-------------")
             try:
                 dice_sides = int(dice_sides)
                 if dice_sides == 1:
@@ -556,7 +660,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("You rolled a " + dice_roll + "!")
                 log_file.write(active_user + " rolled a " +  str(dice_sides) + "-sided die and rolled a " + dice_roll + "!\n")
             except:
-                print("Can't roll die! " + str(dice_sides) + " is not a valid number!")
+                print("Can't roll die! " + str(dice_sides) + " is not a valid number for rolling!")
         
         # Change to random user
         elif chat_message == "/random":
@@ -655,32 +759,41 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # Not an easter egg, too lazy to move it
         # Allows for not saving a message upon request
         elif "/nolog" in chat_message:
-            print("/nolog: The following message will not be logged.")
-            # Set up message preface (used to identify messages)
-            preface = colored(active_user + ", " + current_time + ": ", "dark_grey")
-            # Get chat message.
-            chat_message = input(preface)
-            print("/nolog: Back to logging messages.")
+            if chat_message.removeprefix("/nolog") == " help": 
+                print("-------------")
+                print("/nolog: hide a single message from the chatlog.")
+                print("The following message will not be saved in any chatlogs or records (not even with /quote).")
+                print("Useful if you want to make sure something isn't saved in your records.")
+                print("WARNING: the message is really, truly gone once MultiChat closes!")
+                print("Don't use this for any messages that you want to read later.")
+                print("-------------")
+            else:
+                print("/nolog: The next message will not be saved in the chatlog.")
+                # Set up message preface (used to identify messages)
+                preface = colored(active_user + ", " + current_time + ": ", "dark_grey")
+                # Get chat message.
+                chat_message = input(preface)
+                print("/nolog: Back to normal logging.")
 
         elif chat_message.lower() == "thumbsupper":
             emote = """
-´´´´´´´´´´´´´´´´´´´´´´¶¶¶¶¶¶¶¶¶
-´´´´´´´´´´´´´´´´´´´´¶¶´´´´´´´´´´¶¶
-´´´´´´¶¶¶¶¶´´´´´´´¶¶´´´´´´´´´´´´´´¶¶
-´´´´´¶´´´´´¶´´´´¶¶´´´´´¶¶´´´´¶¶´´´´´¶¶
-´´´´´¶´´´´´¶´´´¶¶´´´´´´¶¶´´´´¶¶´´´´´´´¶¶
-´´´´´¶´´´´¶´´¶¶´´´´´´´´¶¶´´´´¶¶´´´´´´´´¶¶
-´´´´´´¶´´´¶´´´¶´´´´´´´´´´´´´´´´´´´´´´´´´¶¶
-´´´´¶¶¶¶¶¶¶¶¶¶¶¶´´´´´´´´´´´´´´´´´´´´´´´´¶¶
-´´´¶´´´´´´´´´´´´¶´¶¶´´´´´´´´´´´´´¶¶´´´´´¶¶
-´´¶¶´´´´´´´´´´´´¶´´¶¶´´´´´´´´´´´´¶¶´´´´´¶¶
-´¶¶´´´¶¶¶¶¶¶¶¶¶¶¶´´´´¶¶´´´´´´´´¶¶´´´´´´´¶¶
-´¶´´´´´´´´´´´´´´´¶´´´´´¶¶¶¶¶¶¶´´´´´´´´´¶¶
-´¶¶´´´´´´´´´´´´´´¶´´´´´´´´´´´´´´´´´´´´¶¶
-´´¶´´´¶¶¶¶¶¶¶¶¶¶¶¶´´´´´´´´´´´´´´´´´´´¶¶
-´´¶¶´´´´´´´´´´´¶´´¶¶´´´´´´´´´´´´´´´´¶¶
-´´´¶¶¶¶¶¶¶¶¶¶¶¶´´´´´¶¶´´´´´´´´´´´´¶¶
-´´´´´´´´´´´´´´´´´´´´´´´¶¶¶¶¶¶¶¶¶¶¶"""
+´´´´´´´´´´´´´´´´´´´´´´@@@@@@@@@
+´´´´´´´´´´´´´´´´´´´´@@´´´´´´´´´´@@
+´´´´´´@@@@@´´´´´´´@@´´´´´´´´´´´´´´@@
+´´´´´@´´´´´@´´´´@@´´´´´@@´´´´@@´´´´´@@
+´´´´´@´´´´´@´´´@@´´´´´´@@´´´´@@´´´´´´´@@
+´´´´´@´´´´@´´@@´´´´´´´´@@´´´´@@´´´´´´´´@@
+´´´´´´@´´´@´´´@´´´´´´´´´´´´´´´´´´´´´´´´´@@
+´´´´@@@@@@@@@@@@´´´´´´´´´´´´´´´´´´´´´´´´@@
+´´´@´´´´´´´´´´´´@´@@´´´´´´´´´´´´´@@´´´´´@@
+´´@@´´´´´´´´´´´´@´´@@´´´´´´´´´´´´@@´´´´´@@
+´@@´´´@@@@@@@@@@@´´´´@@´´´´´´´´@@´´´´´´´@@
+´@´´´´´´´´´´´´´´´@´´´´´@@@@@@@´´´´´´´´´@@
+´@@´´´´´´´´´´´´´´@´´´´´´´´´´´´´´´´´´´´@@
+´´@´´´@@@@@@@@@@@@´´´´´´´´´´´´´´´´´´´@@
+´´@@´´´´´´´´´´´@´´@@´´´´´´´´´´´´´´´´@@
+´´´@@@@@@@@@@@@´´´´´@@´´´´´´´´´´´´@@
+´´´´´´´´´´´´´´´´´´´´´´´@@@@@@@@@@@"""
             print(preface + emote + "\n")
             log_file.write(preface + emote + "\n") 
 
