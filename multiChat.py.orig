@@ -316,7 +316,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             
                 active_user = user_list[chat_message]["username"]
                 active_color = user_list[chat_message]["color"]
-                #log_file.write("\n")
+                log_file.write("\n")
                 #print()
             else:
                 chat_message = chat_message
@@ -507,7 +507,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("Settings:")
             loc = settings["savedir"]
             timestat = settings["timestamps"]
-            print(f"1: Change chatlog save location (currently {loc}")
+            print(f"1: Change chatlog save location (currently {loc})")
             print(f"2: Toggle timestamps (currently {timestat})")
             setnum = input("Enter number of setting to change: ")
             match setnum:
@@ -619,7 +619,6 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/color <color name>: Set a prefix color for this user.")
             print("/commands: View this message.")
             print("/dice <number>: Roll a die with <number> faces.")
-            print("/exit: Save and quit MultiChat.")
             print("/help: View a help message.")
             print("/load: Load saved users from file. Overwrites current user list!") 
             print("/nolog: Do not save the next message.")
@@ -632,7 +631,6 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("/save: Save list of current users to file.") 
             print("/settings: Change settings for MultiChat.")
             print("/shrug: Send a shrug emote.")
-            print("/switch: Same as /users.")
             print("/users: List users in session.")
             print()
 
@@ -661,8 +659,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("You rolled a " + dice_roll + "!")
                 log_file.write(active_user + " rolled a " +  str(dice_sides) + "-sided die and rolled a " + dice_roll + "!\n")
             except:
-                if dice_sides != "help":
-                    print("Can't roll die! " + str(dice_sides) + " is not a valid number for rolling!")
+                print("Can't roll die! " + str(dice_sides) + " is not a valid number for rolling!")
         
         # Change to random user
         elif chat_message == "/random":
@@ -822,5 +819,4 @@ try:
     main()
 except KeyboardInterrupt:
     clear()
-    log_file.write("\n\n")
     print("Quitting.")
