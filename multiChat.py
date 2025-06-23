@@ -548,7 +548,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         elif chat_message.startswith("/color") == True:
             color = chat_message.removeprefix("/color ")
             # Valid colors
-            color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
+            color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
             # Help texts
             if color == "/color":
                 print("\nTo set a color for the current user, run: /color (color name)")
