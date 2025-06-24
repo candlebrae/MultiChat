@@ -41,7 +41,7 @@ def build_default_settings():
     # Figure out default chatlog file location- distinct from settings location!
     log_dir = get_log_dir()
     # Build the settings dict
-    default_settings = {"savedir": log_dir, "timestamps": True}
+    default_settings = {"savedir": log_dir, "timestamps": True, "backread_linecount": 100}
     return default_settings
 
 # Either get the user's existing settings, or assign the defaults
@@ -53,6 +53,13 @@ def retrieve_settings():
     else:
         with open(settings_dir + "/settings.pkl", "rb") as settingsfile:
             settings = pickle.load(settingsfile)
+        # Deal with backwards compatibility for new settings
+        try:
+            test = settings["backread_linecount"]
+        except:
+            settings["backread_linecount"] = 100
+            settings_dir = get_settings_dir()
+            save_settings(settings, settings_dir)
         return settings
 
 # Save user settings to file
@@ -116,28 +123,6 @@ def list_users(user_list):
             user_list[user] = {"username": str(user_list[user]), "color": "default"}
         # Information for the user :D
         print("Type " + str(user) + " to send messages as " + user_list[user]["username"])
-
-# Set up main function
-def main():
-    # Get user settings, including log directory location
-    settings = retrieve_settings()
-    # Set up a log directory
-    log_dir = settings["savedir"]
-    try:
-        if os.path.isdir(log_dir) == False: Path(log_dir).mkdir(parents=True, exist_ok=True)
-        os.chdir(log_dir)
-    except Exception as error:
-        print("Error creating or accessing chatlogs folder.")
-        print("Please report this error to the creator.")
-        print("Error code:", error)
-
-    # Get user names and the file to log to.
-    user_list = get_users()
-    log_file, log_file_name = get_log_file(log_dir)
-    # Chat and log to file.
-    chat(user_list, log_dir, log_file, log_file_name, settings)
-    # Close file and finish up.
-    log_file.close()
 
 # Clears the terminal.
 def clear():
@@ -235,7 +220,7 @@ def get_log_file(log_dir):
     return log_file, log_file_name
 
 def chat(user_list, log_dir, log_file, log_file_name, settings):
-    # Read off the existing chat lines.
+    # Setup
     chat_message = ""
     # Deal with any goofs
     if isinstance(user_list, tuple): # If I missed any old user_counter passes
@@ -264,9 +249,19 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
     try:
         # Clear the terminal to make it look nicer.
         clear()
-        # Print any existing chat to terminal.
-        for line in log_file:
-            print(line, end="")
+        # Setup
+        read_line_count = int(settings["backread_linecount"])
+        # Get the old chat logs
+        oldchat = log_file.readlines()
+        # If the user saved this as a setting, get it
+        # Deal with improper values
+        if read_line_count > len(oldchat) or read_line_count < 0:
+            read_line_count = len(oldchat) - 1
+        # Print up to N lines of any existing chat to terminal.
+        for line in (oldchat[-read_line_count:]):
+            print(line, end ='')
+        #for line in log_file:
+        #    print(line, end="")
         # Get the date and add formatting.
         now = date.today()
         todayDate = "-----" + str(now.strftime("%A, %B %d, %Y")) + "-----"
@@ -275,7 +270,8 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         log_file.write(todayDate + "\n\n")
     # Notify the user if an exception occurs while getting the date.
     except Exception as error:
-        print("Error getting date.")
+        print("Error getting chat file or date.")
+        print(error)
     
     # Print instructions for user
     print("Welcome to MultiChat!")
@@ -507,8 +503,11 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print("Settings:")
             loc = settings["savedir"]
             timestat = settings["timestamps"]
+            backread_linecount = settings["backread_linecount"]
+                
             print(f"1: Change chatlog save location (currently {loc}")
             print(f"2: Toggle timestamps (currently {timestat})")
+            print(f"3: Set lines of old chatlog to display (currently {backread_linecount})")
             setnum = input("Enter number of setting to change: ")
             match setnum:
                 # Changing where chatlogs are saved
@@ -543,6 +542,12 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                     settings_dir = get_settings_dir()
                     save_settings(settings, settings_dir)
                     print("Timestamps toggled. Currently:", settings["timestamps"])
+                case "3":
+                    backread_linecount = input("Enter number of lines to display when loading saved chats: ")
+                    settings["backread_linecount"] = backread_linecount
+                    settings_dir = get_settings_dir()
+                    save_settings(settings, settings_dir)
+                    print(f"Line count set to {backread_linecount}.")
 
         # Change the user's prefix color
         elif chat_message.startswith("/color") == True:
@@ -818,6 +823,27 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("Error:", error)
                 print("Your message may not have been saved.")
 
+# Set up main function
+def main():
+    # Get user settings, including log directory location
+    settings = retrieve_settings()
+    # Set up a log directory
+    log_dir = settings["savedir"]
+    try:
+        if os.path.isdir(log_dir) == False: Path(log_dir).mkdir(parents=True, exist_ok=True)
+        os.chdir(log_dir)
+    except Exception as error:
+        print("Error creating or accessing chatlogs folder.")
+        print("Please report this error to the creator.")
+        print("Error code:", error)
+
+    # Get user names and the file to log to.
+    user_list = get_users()
+    log_file, log_file_name = get_log_file(log_dir)
+    # Chat and log to file.
+    chat(user_list, log_dir, log_file, log_file_name, settings)
+    # Close file and finish up.
+    log_file.close()
 
 # Run main function
 try:
