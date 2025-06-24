@@ -22,7 +22,7 @@ from termcolor import colored;
 # Decide where to look for the settings file
 def get_settings_dir():
     if platform.system() == "Windows":
-        env_home = os.getenv('APPDATA')
+        basepath = os.getenv('APPDATA')
     else:
         try:
             basepath = os.environ['XDG_CONFIG_HOME']
