@@ -15,9 +15,9 @@ There are a handful of commands you can use in MultiChat, ranging from adding mo
 ## Dependencies and Usage
 [Executables can be found here](https://codeberg.org/Candlebrae/MultiChat/releases), and have no additional dependencies. You should be able to download the executable for your operating system and run it as per usual (double click the .exe for Windows, and run `multiChat` or `./multichat` in the terminal for Linux). Note that executables can be a bit buggy, as Python is an interpreted language and it took some workarounds to "compile" it.
 
-If you'd like to run the Python program from source, all you need to have installed is Python 3. [You can get the latest version of Python here.](https://www.python.org/downloads/) To run MultiChat, navigate to the folder you saved it to and open a console there. Type ``python multiChat.py`` and you're good to go. If you're on Windows, you could also double-click the .py file to run it. If you're on Linux, you could chuck it in .local/bin to make it executable from anywhere.
+If you'd like to run the Python program from source, you'll need Python 3. [You can get the latest version of Python here.](https://www.python.org/downloads/) You'll also need to install the termcolor library (e.g. ``pip install termcolor``). To run MultiChat, navigate to the folder you saved it to and open a console there. Type ``python multiChat.py`` and you're good to go. If you're on Windows, you could also double-click the .py file to run it.
 
-Regardless of which version you use, chat logs are stored in a folder called .multichat. This folder is in your home directory on Linux, and AppData on Windows. They are stored in plaintext for easy browsing.
+Regardless of which version you use, chat logs are stored in a folder called .multichat. This folder is in .local/share/multichat on Linux, and AppData on Windows. They are stored in plaintext for easy browsing.
 
 ## How to Download
 
