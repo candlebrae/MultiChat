@@ -22,7 +22,10 @@ from termcolor import colored;
 # Decide where to look for the settings file
 def get_settings_dir():
     if platform.system() == "Windows":
-        basepath = os.getenv('APPDATA')
+        try:
+            basepath = os.getenv('APPDATA')
+        except:
+            basepath = "C:/Program Files (x86)"
     else:
         try:
             basepath = os.environ['XDG_CONFIG_HOME']
@@ -475,7 +478,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("-------------")
                 print("/save: Save the names, colors, and proxies of current users.")
                 print("This allows these users to be loaded in a different chat with /load.")
-                print("Saved users can be found in \n    %APPDATA\multichat\saved-users.pkl (Windows)")
+                print("Saved users can be found in \n    %APPDATA/multichat/saved-users.pkl (Windows)")
                 print("    ~/.config/multichat/saved-users.pkl (Linux, MacOS).")
                 print("-------------")
             else:
@@ -491,7 +494,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 print("/load: Retrieve saved user names, colors, and proxies.")
                 print("Warning: old user list will be overwritten!")
                 print("/save must have been used previously to create the file that /load looks for:")
-                print("    %APPDATA\multichat\saved-users.pkl (Windows)")
+                print("    %APPDATA/multichat/saved-users.pkl (Windows)")
                 print("    ~/.config/multichat/saved-users.pkl (Linux, MacOS)")
                 print("-------------")
             else:
