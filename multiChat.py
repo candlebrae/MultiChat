@@ -317,6 +317,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 active_color = user_list[chat_message]["color"]
                 #log_file.write("\n")
                 #print()
+                chat_message = ""
             else:
                 chat_message = chat_message
         except:
@@ -818,7 +819,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # new message to the log file. Report and handle
         # errors if this doesn't succeed, and notify the
         # user that their message may not have saved.
-        else:
+        elif chat_message != "":
             try:
                 # Append to file.
                 log_file.write(preface + chat_message + "\n")
