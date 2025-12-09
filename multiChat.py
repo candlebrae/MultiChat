@@ -44,7 +44,7 @@ def build_default_settings():
     # Figure out default chatlog file location- distinct from settings location!
     log_dir = get_log_dir()
     # Build the settings dict
-    default_settings = {"savedir": log_dir, "timestamps": True, "backread_linecount": 100}
+    default_settings = {"savedir": log_dir, "timestamps": True, "backread_linecount": 100, "case_sensitive_proxies": True}
     return default_settings
 
 # Either get the user's existing settings, or assign the defaults
@@ -61,6 +61,12 @@ def retrieve_settings():
             test = settings["backread_linecount"]
         except:
             settings["backread_linecount"] = 100
+            settings_dir = get_settings_dir()
+            save_settings(settings, settings_dir)
+        try:
+            casesensitive = settings["case_sensitive_proxies"]
+        except:
+            settings["case_sensitive_proxies"] = True
             settings_dir = get_settings_dir()
             save_settings(settings, settings_dir)
         return settings
@@ -222,6 +228,31 @@ def get_log_file(log_dir):
     log_file = open_log(log_dir, log_file_name)
     return log_file, log_file_name
 
+# Test if a message is a switch. If it is, return the key to switch with.
+def check_for_switch(message: str, user_list: dict, case_sensitivity: bool):
+    try:
+        proxies = user_list.keys()
+        if case_sensitivity == False:
+            insensitive_proxies = [proxy.casefold() for proxy in proxies]
+            if message.casefold() in insensitive_proxies: # Removes case differences
+                return True
+            else:
+                return False
+        elif message in proxies:
+            return True
+        else:
+            return False
+    except Exception as ex:
+        print("Please report the following error:", "check for switch failed,", ex)
+        # If all else fails, don't switch
+        return False
+
+def switch(user):
+    active_user = user["username"]
+    active_color = user["color"]
+    chat_message = ""
+    return active_user, active_color, chat_message
+
 def chat(user_list, log_dir, log_file, log_file_name, settings):
     # Setup
     chat_message = ""
@@ -306,21 +337,24 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
         try: # Try switching to the user indicated by the number.
-            if chat_message in user_list.keys():
-                # Working with old format- if user is not a nested dict
-                # (color storage and username storage), fix the format
-                # and carry on
-                if not isinstance(user_list[chat_message], dict):
-                    user_list[chat_message] = {"username": user_list[chat_message], "color": "default"}
-            
-                active_user = user_list[chat_message]["username"]
-                active_color = user_list[chat_message]["color"]
-                #log_file.write("\n")
-                #print()
-                chat_message = ""
-            else:
+            # We have a switch:
+            if check_for_switch(chat_message, user_list, settings["case_sensitive_proxies"]) == True:
+                # Handle the actual switch
+                if settings["case_sensitive_proxies"] == False:
+                    # Find the match
+                    for user in user_list:
+                        # Case-insensitive matching and switching
+                        if user.casefold() == chat_message.casefold():
+                            active_user, active_color, chat_message = switch(user_list[user])
+                            # Fix old user formats
+                            if not isinstance(user_list[user], dict): # If user format is outdated
+                                user_list[user] = {"username": user_list[user], "color": "default"}
+                else: # Case sensitive is simpler
+                    active_user, active_color, chat_message = switch(user_list[chat_message])
+            else: # We're not switching right now
                 chat_message = chat_message
-        except:
+        except Exception as ex:
+            print(ex)
             chat_message = chat_message
         else:
             # If it doesn't work, tell the user it's not working.
@@ -508,10 +542,12 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             loc = settings["savedir"]
             timestat = settings["timestamps"]
             backread_linecount = settings["backread_linecount"]
+            case_sensitivity = settings["case_sensitive_proxies"]
                 
             print(f"1: Change chatlog save location (currently {loc}")
             print(f"2: Toggle timestamps (currently {timestat})")
             print(f"3: Set lines of old chatlog to display (currently {backread_linecount})")
+            print(f"4: Toggle case-sensitivity for switch proxies (currently {case_sensitivity})")
             setnum = input("Enter number of setting to change: ")
             match setnum:
                 # Changing where chatlogs are saved
@@ -552,6 +588,12 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                     settings_dir = get_settings_dir()
                     save_settings(settings, settings_dir)
                     print(f"Line count set to {backread_linecount}.")
+                case "4":
+                    settings["case_sensitive_proxies"] = not settings["case_sensitive_proxies"]
+                    settings_dir = get_settings_dir()
+                    save_settings(settings, settings_dir)
+                    print("Case sensitivity toggled. Currently:", settings["case_sensitive_proxies"])
+
 
         # Change the user's prefix color
         elif chat_message.startswith("/color") == True:
