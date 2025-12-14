@@ -148,7 +148,7 @@ def change_log_dir(settings):
 def add_user(user, user_list):
     if user:
         new_user_number = len(user_list) + 1
-        user_list.update({str(new_user_number): str(user)})
+        user_list.update({str(new_user_number): {"username": str(user), 'color': 'default'}})
         print()
         print(user + " added!")
         print("Type " + str(new_user_number) + " to send messages as " + user + ".")
@@ -656,9 +656,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 # Get key for current user. I'm sorry. This is overkill.
                 reverse_user_lookup = {}
                 for user in user_list:
-                    print(user_list[user])
                     try:
-                        print(user_list[user])
                         reverse_user_lookup[user_list[user]["username"]] = user
                     except TypeError:
                         # String indices must be integers, not 'str'
