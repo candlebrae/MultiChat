@@ -46,7 +46,7 @@ def get_settings_dir():
     settingpath = basepath + "/multichat"
     if os.path.isdir(settingpath) == False: Path(settingpath).mkdir(parents=True, exist_ok=True)
     # Deal with permission errors
-    while not os.access(settingspath, os.W_OK):
+    while not os.access(settingpath, os.W_OK):
         print(f"Default settings path ({settingpath}) is not accessible: permission denied.")
         settingpath = input("Please enter a save location for Multichat settings files: ").rstrip() + "/multichat"
         if os.path.isdir(settingpath) == False: Path(settingpath).mkdir(parents=True, exist_ok=True)
@@ -656,7 +656,13 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 # Get key for current user. I'm sorry. This is overkill.
                 reverse_user_lookup = {}
                 for user in user_list:
-                    reverse_user_lookup[user_list[user]["username"]] = user
+                    print(user_list[user])
+                    try:
+                        print(user_list[user])
+                        reverse_user_lookup[user_list[user]["username"]] = user
+                    except TypeError:
+                        # String indices must be integers, not 'str'
+                        print("Oops! Please let the maintainer know that you encountered an error: user lookup searching for wrong type.")
                 tag = reverse_user_lookup[active_user]
                 # Set new color for current user
                 user_list[tag]["color"] = color
