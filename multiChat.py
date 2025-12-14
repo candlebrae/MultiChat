@@ -20,6 +20,14 @@ import pickle
 from termcolor import colored;
 
 # Decide where to look for the settings file
+# The default option will be one of the following on Linux systems:
+# - $XDG_CONFIG_HOME/multichat
+# - $HOME/.config/multichat
+# - $HOME/Documents/multichat
+# - $HOME/multichat
+# On Windows:
+# $APPDATA\multichat
+# C:\Program Files (x86)\multichat
 def get_settings_dir():
     if platform.system() == "Windows":
         try:
@@ -37,6 +45,11 @@ def get_settings_dir():
                 basepath = os.environ['HOME']
     settingpath = basepath + "/multichat"
     if os.path.isdir(settingpath) == False: Path(settingpath).mkdir(parents=True, exist_ok=True)
+    # Deal with permission errors
+    while not os.access(settingspath, os.W_OK):
+        print(f"Default settings path ({settingpath}) is not accessible: permission denied.")
+        settingpath = input("Please enter a save location for Multichat settings files: ").rstrip() + "/multichat"
+        if os.path.isdir(settingpath) == False: Path(settingpath).mkdir(parents=True, exist_ok=True)
     return settingpath
 
 # Make the default settings
@@ -79,6 +92,14 @@ def save_settings(settings, settings_dir):
     return True
 
 # Decide where the (default) chatlog save directory should be
+# The default locations will be one of the following depending on the file system and environment variable setup. 
+# On Linux:
+# - $XDG_DATA_HOME/multichat
+# - $HOME/.local/share/multichat
+# - $HOME/Documents/multichat
+# - $HOME/multichat
+# On Windows:
+# $APPDATA\multichat
 def get_log_dir():
     if platform.system() == "Windows":
         env_home = os.getenv('APPDATA')
@@ -92,7 +113,34 @@ def get_log_dir():
         if os.path.isdir(env_home) == False: # Fine, home directory it is
             env_home = os.environ['HOME']
     log_dir = env_home + "/multichat"
+    while not os.access(log_dir, os.W_OK):
+        print("Cannot access default log save location ({log_dir}): permission denied.")
+        log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
     return log_dir
+
+def change_log_dir(settings):
+    save_dir = input("Enter new chatlog save location (absolute path): ").rstrip() # Remove trailing slash, if present
+    # if save_dir[-1] in ["/", "\\"]: save_dir = save_dir[:-1]
+    # DO SAFETY CHECKS
+    try: # Does it exist?
+        if os.path.isdir(save_dir) == False: # Nope, fix it
+            Path(save_dir + "/multichat").mkdir(parents=True, exist_ok=True)
+    except Exception as ex: # Nope, failed to fix it
+        print("Could not create save location.")
+    if os.path.isdir(save_dir) == True: # It exists!
+        # Can we write to it?
+        if os.access(save_dir, os.W_OK):
+            settings["savedir"] = save_dir + "/multichat"
+            settings_dir = get_settings_dir()
+            save_settings(settings, settings_dir)
+            clear()
+            print(f"Saved. MultiChat's chat logs will now be saved to {settings_dir}.")
+            log_file.write("\n\n")
+            log_file.close() # Kill the old file, on to the new!
+            log_file = open_log(save_dir, log_file_name)
+            chat(user_list, save_dir, log_file, log_file_name, settings)
+        else:
+            print(f"Cannot access log file: permission denied. Do you have permission to write to files in {save_dir}?")
 
 # Add a new user, updating both the user list and count (used to more easily
 # iterate users- yes, len() would be better. This is old code. I'll fix it 
@@ -247,12 +295,14 @@ def check_for_switch(message: str, user_list: dict, case_sensitivity: bool):
         # If all else fails, don't switch
         return False
 
+# CHANGE ACTIVE USER
 def switch(user):
     active_user = user["username"]
     active_color = user["color"]
     chat_message = ""
     return active_user, active_color, chat_message
 
+# The main chat sequence
 def chat(user_list, log_dir, log_file, log_file_name, settings):
     # Setup
     chat_message = ""
@@ -544,7 +594,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             backread_linecount = settings["backread_linecount"]
             case_sensitivity = settings["case_sensitive_proxies"]
                 
-            print(f"1: Change chatlog save location (currently {loc}")
+            print(f"1: Change chatlog save location (currently {loc})")
             print(f"2: Toggle timestamps (currently {timestat})")
             print(f"3: Set lines of old chatlog to display (currently {backread_linecount})")
             print(f"4: Toggle case-sensitivity for switch proxies (currently {case_sensitivity})")
@@ -554,28 +604,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 case "1":
                     print("Old files will not be copied over-")
                     print("please move these yourself if you'd like to access them.")
-                    save_dir = input("Enter new chatlog save location (absolute path): ")
-                    if save_dir[-1] in ["/", "\\"]: save_dir = save_dir[:-1]
-                    # DO SAFETY CHECKS
-                    try: # Does it exist?
-                        if os.path.isdir(save_dir) == False: # Nope, fix it
-                            Path(save_dir + "/multichat").mkdir(parents=True, exist_ok=True)
-                    except Exception as ex: # Nope, failed to fix it
-                        print("Could not create save location.")
-                    if os.path.isdir(save_dir) == True: # It exists!
-                        # Can we write to it?
-                        if os.access(save_dir, os.W_OK):
-                            settings["savedir"] = save_dir + "/multichat"
-                            settings_dir = get_settings_dir()
-                            save_settings(settings, settings_dir)
-                            clear()
-                            print(f"Saved. MultiChat's chat logs will now be saved to {settings_dir}.")
-                            log_file.write("\n\n")
-                            log_file.close() # Kill the old file, on to the new!
-                            log_file = open_log(save_dir, log_file_name)
-                            chat(user_list, save_dir, log_file, log_file_name, settings)
-                    else:
-                        print(f"Cannot access {save_dir}. Changes not saved.")
+                    change_log_dir(settings)
                 # Toggle timestamps
                 case "2":
                     settings["timestamps"] = not settings["timestamps"]
@@ -865,6 +894,11 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             try:
                 # Append to file.
                 log_file.write(preface + chat_message + "\n")
+            except PermissionError:
+                print("Cannot save to file: permission denied. Do you have permission to write to your log save location?")
+                change_loc = input("Would you like to change your log save location? y/n: ")
+                if change_loc.casefold() == "y":
+                    pass
             except Exception as error:
                 print("Error:", error)
                 print("Your message may not have been saved.")
