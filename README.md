@@ -1,6 +1,8 @@
 # MultiChat
 A simple, personal chat program that runs on a single computer. No Internet, just you.
 
+!! For existing users: the prompt_toolkit library is now a required dependency. If you're using MultiChat as a script (ending in .py), please make sure that you install this! !!
+
 ## Simple and Local
 MultiChat was created with ease of use in mind. You add a few users of your choice to the session, and specify the name of the chat log. After that, it's a  chat application that's simple to use. Type a number to change who's talking, and ``/quit`` to quit. Hit enter to send messages. 
 
@@ -15,7 +17,7 @@ There are a handful of commands you can use in MultiChat, ranging from adding mo
 ## Dependencies and Usage
 [Executables can be found here](https://codeberg.org/Candlebrae/MultiChat/releases), and have no additional dependencies. You should be able to download the executable for your operating system and run it as per usual (double click the .exe for Windows, and run `multiChat` or `./multichat` in the terminal for Linux). Note that executables can be a bit buggy, as Python is an interpreted language and it took some workarounds to "compile" it.
 
-If you'd like to run the Python program from source, you'll need Python 3. [You can get the latest version of Python here.](https://www.python.org/downloads/) You'll also need to install the termcolor library (e.g. ``pip install termcolor``). To run MultiChat, navigate to the folder you saved it to and open a console there. Type ``python multiChat.py`` and you're good to go. If you're on Windows, you could also double-click the .py file to run it.
+If you'd like to run the Python program from source, you'll need Python 3. [You can get the latest version of Python here.](https://www.python.org/downloads/) You'll also need to install the termcolor library (e.g. ``pip install termcolor``) and the [prompt-toolkit library](https://github.com/prompt-toolkit/python-prompt-toolkit/tree/main) (``pip install prompt_toolkit``). To run MultiChat, navigate to the folder you saved it to and open a console there. Type ``python multiChat.py`` and you're good to go. If you're on Windows, you could also double-click the .py file to run it.
 
 Regardless of which version you use, chat logs are stored in a folder called .multichat. This folder is in .local/share/multichat on Linux, and AppData on Windows. They are stored in plaintext for easy browsing.
 

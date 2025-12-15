@@ -18,6 +18,8 @@ import pickle
 # Colored names!
 # TODO: pip dependency. Check if installed. If not, warn user.
 from termcolor import colored;
+# Fixes text wrap bugs
+from prompt_toolkit import prompt, print_formatted_text, ANSI
 
 # Decide where to look for the settings file
 # The default option will be one of the following on Linux systems:
@@ -410,8 +412,9 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             preface = preface_contents
         else: # Color set
             preface = colored(preface_contents, active_color)
+
         # Get chat message.
-        chat_message = input(preface)
+        chat_message = prompt(ANSI(preface))
 
         # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
