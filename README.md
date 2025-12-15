@@ -25,3 +25,11 @@ If you're not familiar with Git repositories, there are a few ways that you can 
 
 - If you don't have Git installed, there's a little button with a download icon on it on this page. It's on the right, above the list of files and below the bar that says "Commits." Click that, and select your preferred format to download the files.
 - If you have Git installed, you can run ``git clone https://codeberg.org/Candlebrae/MultiChat.git`` in a terminal/console. That will download a copy of this repository.
+
+## Custom Flavortext
+
+The /random command uses a list of flavortext to make its random selections more interesting. If you'd like to add your own flavortext:
+
+1. Create a file with the name, "random_flavortext.txt".
+2. Write your flavortext of choice in this file. One piece of flavortext per line. Any instances of "NAME" (all caps!) will be replaced with the randomly selected user.
+3. Place the random_flavortext.txt file in one of two places: either the same directory multiChat is located in, or in your settings directory. (To find your settings directory, run /settings)

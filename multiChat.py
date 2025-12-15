@@ -56,6 +56,7 @@ def get_settings_dir():
 def build_default_settings():
     # Figure out default chatlog file location- distinct from settings location!
     log_dir = get_log_dir()
+    settings_dir = get_settings_dir()
     # Build the settings dict
     default_settings = {"savedir": log_dir, "timestamps": True, "backread_linecount": 100, "case_sensitive_proxies": True}
     return default_settings
@@ -615,7 +616,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         # Change settings
         elif chat_message == "/settings":
             # Retrieve settings
-            print("Settings:")
+            print(f"Settings (saved at {get_settings_dir()}):")
             loc = settings["savedir"]
             timestat = settings["timestamps"]
             backread_linecount = settings["backread_linecount"]

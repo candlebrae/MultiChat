@@ -1,4 +1,5 @@
 NAME's turn!
+Knock knock- oh, it's NAME!
 NAME has been chosen by the gods of randomness!
 NAME was selected by fate!
 NAME was hand-picked by the algorithm!
@@ -29,6 +30,6 @@ NAME joins the game!
 NAME, it's your turn!
 NAME, it's your time!
 NAME, time to talk!
-NAME has a mouth- they can finally scream!",
+NAME has a mouth- they can finally scream!
 NAME gets the talking stick!
 Get over here, NAME!
