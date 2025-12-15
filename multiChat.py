@@ -142,9 +142,7 @@ def change_log_dir(settings):
         else:
             print(f"Cannot access log file: permission denied. Do you have permission to write to files in {save_dir}?")
 
-# Add a new user, updating both the user list and count (used to more easily
-# iterate users- yes, len() would be better. This is old code. I'll fix it 
-# eventually.)
+# Add a new user, updating the user list
 def add_user(user, user_list):
     if user:
         new_user_number = len(user_list) + 1
@@ -786,12 +784,14 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                         " has a mouth- they can finally scream",
                         " gets the talking stick"
                     ]
+            # Pick the silly flavortext
             random_flavor = random.choice(flavor_options)
-            # Choose a random number from 1 to user_count.
-            random_number = str(random.randrange(1, len(user_list) + 1))
+            # Pick the random user
+            random_user = random.choice(list(user_list.keys()))
             # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
-            if active_user != user_list[random_number]:
-                active_user = user_list[random_number]["username"]
+            if active_user != random_user:
+                active_user, active_color, chat_message = switch(user_list[random_user])
+            # Let the user know who got picked
             print("Multichat: " + active_user + random_flavor + "!")
 
         # Easter eggs and references
