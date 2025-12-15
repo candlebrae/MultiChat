@@ -124,7 +124,7 @@ def get_log_dir():
         log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
     return log_dir
 
-def change_log_dir(settings):
+def change_log_dir(settings, log_file, log_file_name, user_list):
     save_dir = input("Enter new chatlog save location (absolute path): ").rstrip() # Remove trailing slash, if present
     # if save_dir[-1] in ["/", "\\"]: save_dir = save_dir[:-1]
     # DO SAFETY CHECKS
@@ -140,7 +140,8 @@ def change_log_dir(settings):
             settings_dir = get_settings_dir()
             save_settings(settings, settings_dir)
             clear()
-            print(f"Saved. MultiChat's chat logs will now be saved to {settings_dir}.")
+            print(f"Saved. MultiChat's chat logs will now be saved to {save_dir}.")
+            print(log_file)
             log_file.write("\n\n")
             log_file.close() # Kill the old file, on to the new!
             log_file = open_log(save_dir, log_file_name)
@@ -632,7 +633,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                 case "1":
                     print("Old files will not be copied over-")
                     print("please move these yourself if you'd like to access them.")
-                    change_log_dir(settings)
+                    change_log_dir(settings, log_file, log_file_name, user_list)
                 # Toggle timestamps
                 case "2":
                     settings["timestamps"] = not settings["timestamps"]
