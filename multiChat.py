@@ -15,11 +15,28 @@ except:
 import random
 # Used to save/load users
 import pickle
-# Colored names!
-# TODO: pip dependency. Check if installed. If not, warn user.
-from termcolor import colored;
-# Fixes text wrap bugs
-from prompt_toolkit import prompt, print_formatted_text, ANSI
+
+# Check if installed. If not, warn user.
+COLORS = False
+try:
+    # Used to color names/prompts.
+    from termcolor import colored;
+    COLORS = True
+except:
+    print("Warning: termcolor library required for color output.")
+    print("It can be installed in your terminal with 'pip install termcolor'.")
+    print("Continuing without color.")
+
+PROMPT_INSTALLED = False
+try:
+    # Fixes text wrap bugs by allowing input wrapping
+    from prompt_toolkit import prompt, print_formatted_text, ANSI
+    PROMPT_INSTALLED = True
+except:
+    print("Warning: prompt_toolkit library required for handling long messages.")
+    print("It can be installed in your terminal with 'pip install prompt_toolkit'.")
+    print("Continuing. Visual errors may occur when entering long lines of text.")
+
 
 # Decide where to look for the settings file
 # The default option will be one of the following on Linux systems:
@@ -253,6 +270,10 @@ def get_users():
             if user_list != {}:
                 user_number = len(user_list)
                 continue_entry = False
+                # Deal with lack of color support
+                if not COLORS:
+                    for user in user_list:
+                        user_list[user]["color"] = "default"
                 return user_list
         elif user_name == "/load":
             overwrite = input("Warning: loading saved users will overwrite current user list. Continue? y/n: ")
@@ -329,7 +350,11 @@ def check_for_switch(message: str, user_list: dict, case_sensitivity: bool):
 # CHANGE ACTIVE USER
 def switch(user):
     active_user = user["username"]
-    active_color = user["color"]
+    # Handle color/noncolor support
+    if COLORS:
+        active_color = user["color"]
+    else:
+        active_color = "default"
     chat_message = ""
     return active_user, active_color, chat_message
 
@@ -414,7 +439,10 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             preface = colored(preface_contents, active_color)
 
         # Get chat message.
-        chat_message = prompt(ANSI(preface))
+        if PROMPT_INSTALLED:
+            chat_message = prompt(ANSI(preface))
+        else:
+            chat_message = input(preface)
 
         # SWITCH ACTIVE USER  
         # Do not record the number in the log file.
@@ -658,47 +686,50 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
 
         # Change the user's prefix color
         elif chat_message.startswith("/color") == True:
-            color = chat_message.removeprefix("/color ")
-            # Valid colors
-            color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
-            # Set up sample color display, accounting for availability differences
-            color_samples = "\ndefault"
-            for color_option in color_list:
-                try: # Every color colored with itself
-                    color_samples += ", \n" + colored(color_option, color_option)
-                except:
-                    pass # Color not available on this system
-            # Help texts
-            if color == "/color":
-                print("\nTo set a color for the current user, run: /color (color name)")
-                print("For example: /color red")
-                color = "nonsense"
-            if color == "help":
-                print("-------------")
-                print("/color <colorname>: set the color of the current user's name/timestamp.")
-                print("<color> may be any standard ANSII terminal color name.")
-                print("The following colors are allowed:")
-                print(color_samples)
-                print("Examples:")
-                print("    /color red: set the current user's color to red.")
-                print("    /color default: set the current user's color to the default text color.")
-                print("-------------")
-            # If we have a valid color
-            if color in color_list and color != "default":
-                # Get key for current user. I'm sorry. This is overkill.
-                reverse_user_lookup = {}
-                for user in user_list:
-                    try:
-                        reverse_user_lookup[user_list[user]["username"]] = user
-                    except TypeError:
-                        # String indices must be integers, not 'str'
-                        print("Oops! Please let the maintainer know that you encountered an error: user lookup searching for wrong type.")
-                tag = reverse_user_lookup[active_user]
-                # Set new color for current user
-                user_list[tag]["color"] = color
-                active_color = color
-            elif color != "help": # Invalid choice
-                print("Please enter a valid color from the following:", color_samples, "\n")
+            if not COLORS:
+                print("Colors not supported: termcolor library not installed.")
+            else:
+                color = chat_message.removeprefix("/color ")
+                # Valid colors
+                color_list = ["red", "yellow", "green", "cyan", "blue", "magenta", "light_grey", "dark_grey", "black", "white", "light_red", "light_yellow", "light_green", "light_cyan", "light_blue", "light_magenta"]
+                # Set up sample color display, accounting for availability differences
+                color_samples = "\ndefault"
+                for color_option in color_list:
+                    try: # Every color colored with itself
+                        color_samples += ", \n" + colored(color_option, color_option)
+                    except:
+                        pass # Color not available on this system
+                # Help texts
+                if color == "/color":
+                    print("\nTo set a color for the current user, run: /color (color name)")
+                    print("For example: /color red")
+                    color = "nonsense"
+                if color == "help":
+                    print("-------------")
+                    print("/color <colorname>: set the color of the current user's name/timestamp.")
+                    print("<color> may be any standard ANSII terminal color name.")
+                    print("The following colors are allowed:")
+                    print(color_samples)
+                    print("Examples:")
+                    print("    /color red: set the current user's color to red.")
+                    print("    /color default: set the current user's color to the default text color.")
+                    print("-------------")
+                # If we have a valid color
+                if color in color_list and color != "default":
+                    # Get key for current user. I'm sorry. This is overkill.
+                    reverse_user_lookup = {}
+                    for user in user_list:
+                        try:
+                            reverse_user_lookup[user_list[user]["username"]] = user
+                        except TypeError:
+                            # String indices must be integers, not 'str'
+                            print("Oops! Please let the maintainer know that you encountered an error: user lookup searching for wrong type.")
+                    tag = reverse_user_lookup[active_user]
+                    # Set new color for current user
+                    user_list[tag]["color"] = color
+                    active_color = color
+                elif color != "help": # Invalid choice
+                    print("Please enter a valid color from the following:", color_samples, "\n")
 
         # Load users from file
         elif chat_message.startswith("/proxy") == True:
