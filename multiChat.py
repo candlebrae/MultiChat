@@ -65,7 +65,7 @@ def retrieve_settings():
     settings_dir = get_settings_dir()
     print(settings_dir)
     if os.path.isfile(settings_dir + "/settings.pkl") == False: 
-        return build_default_settings()
+        settings = build_default_settings()
     else:
         with open(settings_dir + "/settings.pkl", "rb") as settingsfile:
             settings = pickle.load(settingsfile)
@@ -82,11 +82,16 @@ def retrieve_settings():
             settings["case_sensitive_proxies"] = True
             settings_dir = get_settings_dir()
             save_settings(settings, settings_dir)
-        return settings
+    # Add random flavortext
+    settings["random_flavortext"] = get_flavortext(settings_dir)
+    return settings
 
 # Save user settings to file
 def save_settings(settings, settings_dir):
     if os.path.isdir(settings_dir) == False: Path(settings).mkdir(parents=True, exist_ok=True)
+    # Remove options that we don't want to store in the settings file
+    if "random_flavortext" in settings.keys():
+        del settings["random_flavortext"]
     with open (settings_dir + "/settings.pkl", "wb") as settingfile:
         pickle.dump(settings, settingfile)
     return True
@@ -141,6 +146,30 @@ def change_log_dir(settings):
             chat(user_list, save_dir, log_file, log_file_name, settings)
         else:
             print(f"Cannot access log file: permission denied. Do you have permission to write to files in {save_dir}?")
+
+# Get list of flavortext used by /random
+def get_flavortext(settings_dir):
+    # Check for a custom flavor text file
+    if os.path.isfile(settings_dir + "/random_flavortext.txt"):
+        with open(settings_dir + "/random_flavortext.txt", "r") as flavor_file:
+            flavor_options = flavor_file.readlines()
+    elif os.path.isfile("random_flavortext.txt"):
+        with open("random_flavortext.txt", "r") as flavor_file:
+            flavor_options = flavor_file.readlines()
+    else:
+        # If not found, use a short default list of flavor text
+        flavor_options = [
+            "NAME's turn!",
+            "NAME has been chosen by the gods of randomness!",
+            "NAME was hand-picked by the algorithm!",
+            "NAME has been chosen!",
+            "NAME won the lottery!",
+            "NAME spawned in!",
+            "NAME, I choose you!",
+            "NAME joins the game!",
+            "NAME gets the talking stick!"
+            ]
+    return flavor_options
 
 # Add a new user, updating the user list
 def add_user(user, user_list):
@@ -750,49 +779,15 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
         
         # Change to random user
         elif chat_message == "/random":
-            flavor_options = [
-                        " has been chosen by the gods of randomness",
-                        " was selected by fate",
-                        " was hand-picked by the algorithm",
-                        " has been chosen",
-                        " is the chosen one",
-                        " is at the front of the conga line",
-                        " fulfilled the prophecy",
-                        " won the lottery",
-                        " has RNG's favor",
-                        " came forwards",
-                        " won the game",
-                        " got picked",
-                        ", come on down",
-                        ", get over here",
-                        ", congratulations!!",
-                        " was struck by Zeus",
-                        " spawned in",
-                        " experienced a canon event",
-                        " was enlisted in the skeleton wars",
-                        " came back from the soup store",
-                        " joined the brawl",
-                        " walks into a bar",
-                        ' walks into a bar... and says "ouch"',
-                        " materializes",
-                        ", I choose you",
-                        " was pulled from the gacha",
-                        " joins the game",
-                        ", it's your turn!",
-                        ", it's your time!",
-                        ", time to talk!",
-                        " has a mouth- they can finally scream",
-                        " gets the talking stick"
-                    ]
             # Pick the silly flavortext
-            random_flavor = random.choice(flavor_options)
+            random_flavor = random.choice(settings["random_flavortext"]).strip()
             # Pick the random user
             random_user = random.choice(list(user_list.keys()))
             # Change to the random user only if it's different than the current active_user. Otherwise choose a random user again. Repeat until a different user is found.
             if active_user != random_user:
                 active_user, active_color, chat_message = switch(user_list[random_user])
             # Let the user know who got picked
-            print("Multichat: " + active_user + random_flavor + "!")
+            print("Multichat: " + random_flavor.replace("NAME", active_user))
 
         # Easter eggs and references
         # Table flipping
