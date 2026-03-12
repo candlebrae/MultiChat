@@ -77,7 +77,7 @@ def build_default_settings():
     log_dir = get_log_dir()
     settings_dir = get_settings_dir()
     # Build the settings dict
-    default_settings = {"savedir": log_dir, "timestamps": True, "backread_linecount": 100, "case_sensitive_proxies": True}
+    default_settings = {"savedir": log_dir, "timestamps": True, "timestamp_format": "%H:%M:%S", "backread_linecount": 100, "case_sensitive_proxies": True}
     return default_settings
 
 # Either get the user's existing settings, or assign the defaults
@@ -100,6 +100,14 @@ def retrieve_settings():
             casesensitive = settings["case_sensitive_proxies"]
         except:
             settings["case_sensitive_proxies"] = True
+            settings_dir = get_settings_dir()
+            save_settings(settings, settings_dir)
+        try:
+            timestamp_format = settings["timestamp_format"]
+            now.strftime(settings["timestamp_format"])
+        except:
+            print("Invalid or missing timestamp format setting; reverting to base format (%H:%M:%S).")
+            settings["timestamp_format"] = "%H:%M:%S"
             settings_dir = get_settings_dir()
             save_settings(settings, settings_dir)
     # Add random flavortext
@@ -427,7 +435,7 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
     while chat_message not in ["/quit", "/exit"]:
         # Get the time.
         now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
+        current_time = now.strftime(settings["timestamp_format"])
         # Set up message preface (used to identify messages)
         if settings["timestamps"] == True:
             preface_contents = str(active_user) + ", " + current_time + ": "
@@ -651,13 +659,15 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
             print(f"Settings (saved at {get_settings_dir()}):")
             loc = settings["savedir"]
             timestat = settings["timestamps"]
+            timestat_format = settings["timestamp_format"]
             backread_linecount = settings["backread_linecount"]
             case_sensitivity = settings["case_sensitive_proxies"]
                 
             print(f"1: Change chatlog save location (currently {loc})")
             print(f"2: Toggle timestamps (currently {timestat})")
-            print(f"3: Set lines of old chatlog to display (currently {backread_linecount})")
-            print(f"4: Toggle case-sensitivity for switch proxies (currently {case_sensitivity})")
+            print(f"3: Change timestamp format (currently {timestat_format})")
+            print(f"4: Set lines of old chatlog to display (currently {backread_linecount})")
+            print(f"5: Toggle case-sensitivity for switch proxies (currently {case_sensitivity})")
             setnum = input("Enter number of setting to change: ")
             match setnum:
                 # Changing where chatlogs are saved
@@ -671,13 +681,28 @@ def chat(user_list, log_dir, log_file, log_file_name, settings):
                     settings_dir = get_settings_dir()
                     save_settings(settings, settings_dir)
                     print("Timestamps toggled. Currently:", settings["timestamps"])
+                # Change format of timestamps
                 case "3":
+                    settings["timestamp_format"] = input("Please enter a valid datetime formatting string (e.g. %H:%M): ")
+                    invalid = True
+                    while invalid:
+                        try:
+                            now.strftime(settings["timestamp_format"])
+                            invalid = False
+                        except:
+                            print("Invalid datetime format string.")
+                            invalid = True
+                            settings["timestamp_format"] = input("Please enter a valid datetime formatting string (e.g. %H:%M): ")
+                    settings_dir = get_settings_dir()
+                    save_settings(settings, settings_dir)
+                    print("Timestamp format changed. Currently:", settings["timestamp_format"])
+                case "4":
                     backread_linecount = input("Enter number of lines to display when loading saved chats: ")
                     settings["backread_linecount"] = backread_linecount
                     settings_dir = get_settings_dir()
                     save_settings(settings, settings_dir)
                     print(f"Line count set to {backread_linecount}.")
-                case "4":
+                case "5":
                     settings["case_sensitive_proxies"] = not settings["case_sensitive_proxies"]
                     settings_dir = get_settings_dir()
                     save_settings(settings, settings_dir)
