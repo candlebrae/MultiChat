@@ -25,8 +25,10 @@ Regardless of which version you use, chat logs are stored in a folder called .mu
 
 If you're not familiar with Git repositories, there are a few ways that you can download this! Here are the easiest two:
 
-- If you don't have Git installed, there's a little button with a download icon on it on this page. It's on the right, above the list of files and below the bar that says "Commits." Click that, and select your preferred format to download the files.
-- If you have Git installed, you can run ``git clone https://codeberg.org/Candlebrae/MultiChat.git`` in a terminal/console. That will download a copy of this repository.
+If you don't have Git installed:
+- Downloads for versioned releases (usually lags behind significantly): [https://codeberg.org/Owlrooster/MultiChat/releases](https://codeberg.org/Owlrooster/MultiChat/releases)
+- Recommended download of source code (can be run from command line/terminal [if Python is installed](https://www.python.org/downloads/)): [https://codeberg.org/Owlrooster/MultiChat/archive/main.zip](https://codeberg.org/Owlrooster/MultiChat/archive/main.zip)
+- If you *do* have Git installed, you can run ``git clone https://codeberg.org/Candlebrae/MultiChat.git`` in a terminal/console. That will download a copy of this repository.
 
 ## Custom Flavortext
 
