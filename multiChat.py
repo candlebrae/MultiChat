@@ -144,21 +144,23 @@ def make_dir_exist(dir: str) -> bool:
 # On Windows:
 # $APPDATA\multichat
 def get_log_dir() -> str:
+    env_home = None # Nothing default
     if platform.system() == "Windows":
         env_home = os.getenv('APPDATA')
     else:
-        try:
-            env_home = os.environ['XDG_DATA_HOME']
-        except:
-            env_home = os.environ['HOME'] + "/.local/share"
-        if os.path.isdir(env_home) == False: # ...Documents, then?
-            env_home = os.environ['HOME'] + "/Documents"
-        if os.path.isdir(env_home) == False: # Fine, home directory it is
-            env_home = os.environ['HOME']
+        for place in [os.environ['XDG_DATA_HOME'], os.environ['HOME'] + "/.local/share", os.environ['HOME'] + "/Documents", os.environ['HOME']]:
+            make_dir_exist(place)
+            #if os.path.isdir(place) == True:
+            if make_dir_exist(place) == True:
+                env_home = place
+                break
+    if env_home is None:
+        print("Cannot find a valid log save location.")
+        log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
     log_dir = env_home + "/multichat"
     log_dir_exists = make_dir_exist(log_dir)
     while not os.access(log_dir, os.W_OK) or not log_dir_exists:
-        print(f"Cannot access default log save location ({log_dir}): permission denied.")
+        print(f"Cannot access log save location ({log_dir}). Permission error?")
         log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
         log_dir_exists = make_dir_exist(log_dir)
     return log_dir
