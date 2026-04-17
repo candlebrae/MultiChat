@@ -124,6 +124,16 @@ def save_settings(settings, settings_dir):
         pickle.dump(settings, settingfile)
     return True
 
+
+# We need this directory to exist yesterday
+def make_dir_exist(dir: str) -> bool:
+    if os.path.isdir(dir) == False: # Doesn't exist
+        try: # Try to make it
+            Path(dir).mkdir(parents=True, exist_ok=True)
+        except:
+            return False # Doesn't exist, can't make it
+    return True # Does exist, one way or another
+
 # Decide where the (default) chatlog save directory should be
 # The default locations will be one of the following depending on the file system and environment variable setup. 
 # On Linux:
@@ -133,7 +143,7 @@ def save_settings(settings, settings_dir):
 # - $HOME/multichat
 # On Windows:
 # $APPDATA\multichat
-def get_log_dir():
+def get_log_dir() -> str:
     if platform.system() == "Windows":
         env_home = os.getenv('APPDATA')
     else:
@@ -146,9 +156,11 @@ def get_log_dir():
         if os.path.isdir(env_home) == False: # Fine, home directory it is
             env_home = os.environ['HOME']
     log_dir = env_home + "/multichat"
-    while not os.access(log_dir, os.W_OK):
-        print("Cannot access default log save location ({log_dir}): permission denied.")
+    log_dir_exists = make_dir_exist(log_dir)
+    while not os.access(log_dir, os.W_OK) or not log_dir_exists:
+        print(f"Cannot access default log save location ({log_dir}): permission denied.")
         log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
+        log_dir_exists = make_dir_exist(log_dir)
     return log_dir
 
 def change_log_dir(settings, log_file, log_file_name, user_list):
