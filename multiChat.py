@@ -132,7 +132,9 @@ def make_dir_exist(dir: str) -> bool:
             Path(dir).mkdir(parents=True, exist_ok=True)
         except:
             return False # Doesn't exist, can't make it
-    return True # Does exist, one way or another
+    if os.path.isdir(dir) == True:
+        return True # Does exist, one way or another
+    return False # Something has gone terribly wrong
 
 # Decide where the (default) chatlog save directory should be
 # The default locations will be one of the following depending on the file system and environment variable setup. 
@@ -149,16 +151,16 @@ def get_log_dir() -> str:
         env_home = os.getenv('APPDATA')
     else:
         for place in [os.environ['XDG_DATA_HOME'], os.environ['HOME'] + "/.local/share", os.environ['HOME'] + "/Documents", os.environ['HOME']]:
-            make_dir_exist(place)
-            #if os.path.isdir(place) == True:
             if make_dir_exist(place) == True:
                 env_home = place
                 break
+    # Something has gone very wrong if you get here
     if env_home is None:
         print("Cannot find a valid log save location.")
         log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
     log_dir = env_home + "/multichat"
     log_dir_exists = make_dir_exist(log_dir)
+    # Likewise: previously fine directory is somehow not fine to write to
     while not os.access(log_dir, os.W_OK) or not log_dir_exists:
         print(f"Cannot access log save location ({log_dir}). Permission error?")
         log_dir = input("Enter valid log save location: ").rstrip() + "/multichat"
