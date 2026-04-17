@@ -83,7 +83,6 @@ def build_default_settings():
 # Either get the user's existing settings, or assign the defaults
 def retrieve_settings():
     settings_dir = get_settings_dir()
-    print(settings_dir)
     if os.path.isfile(settings_dir + "/settings.pkl") == False: 
         settings = build_default_settings()
     else:
